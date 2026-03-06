@@ -1,0 +1,84 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# docker-compose.override.yml
+#
+# Was ist diese Datei?
+# Diese Datei ergänzt docker-compose.yml für die lokale Entwicklung.
+# Docker Compose liest AUTOMATISCH beide Dateien gleichzeitig:
+# erst docker-compose.yml, dann docker-compose.override.yml.
+#
+# Warum zwei Dateien?
+# docker-compose.yml  → Funktioniert auf JEDEM System (Produktion, Staging)
+# docker-compose.override.yml → Nur für lokale Entwicklung:
+#   - Hot-Reload (Code-Änderungen sofort sichtbar ohne Neustart)
+#   - Mehr Logging (detaillierte Fehlermeldungen)
+#   - Ports für Debugging
+#   - Schnellere Builds (kein Produktions-Optimierungen)
+#
+# Diese Datei wird NICHT auf den echten Server deployed!
+# Sie liegt in .gitignore (wenn du eigene lokale Anpassungen hast).
+# Diese Vorlage wird aber als Beispiel eingecheckt.
+#
+# Team: Developer Setup Team | Branch: feature/developer-setup
+# ─────────────────────────────────────────────────────────────────────────────
+
+version: "3.9"
+
+services:
+
+  # ── API GATEWAY (Entwicklungs-Overrides) ───────────────────────────────────
+  api_gateway:
+    environment:
+      # Debug-Modus aktivieren: zeigt detaillierte Fehlermeldungen
+      # NIEMALS in der Produktion aktivieren!
+      - DEBUG=true
+      - LOG_LEVEL=debug
+      # Zeigt SQL-Abfragen im Terminal – nützlich zum Verstehen
+      # was das Backend von der Datenbank abfragt
+      - SQLALCHEMY_ECHO=true
+
+    # Im Entwicklungsmodus: Server bei jeder Code-Änderung neu starten
+    # "--reload" macht das automatisch. Das ist schneller als
+    # den Container komplett neu zu bauen.
+    command: uvicorn api.main:app --reload --host 0.0.0.0 --port 8000 --log-level debug
+
+    # Zusätzlicher Port für den Python Debugger (debugpy)
+    # Ermöglicht Breakpoints in VSCode auch wenn Code im Container läuft
+    ports:
+      - "8000:8000"
+      - "5678:5678"  # debugpy Remote-Debugger Port
+
+  # ── FRONTEND (Entwicklungs-Overrides) ──────────────────────────────────────
+  frontend:
+    environment:
+      # Next.js zeigt detaillierte Fehlermeldungen im Browser
+      - NEXT_TELEMETRY_DISABLED=1  # Keine anonymen Daten an Vercel senden
+
+  # ── DATENBANK (Entwicklungs-Overrides) ─────────────────────────────────────
+  db:
+    environment:
+      # Mehr PostgreSQL-Logging für Entwicklung
+      # log_statement='all' schreibt ALLE SQL-Befehle ins Log
+      # Nützlich zum Debuggen, aber sehr geschwätzig!
+      - POSTGRES_INITDB_ARGS=--auth-local=trust
+
+  # ── REDIS (Entwicklungs-Overrides) ─────────────────────────────────────────
+  redis:
+    # Kein Passwort für lokale Entwicklung (einfacher zu nutzen)
+    command: redis-server --appendonly yes --loglevel verbose
+
+  # ── MAILHOG (nur Entwicklung) ──────────────────────────────────────────────
+  #
+  # Was ist MailHog?
+  # MailHog fängt alle E-Mails die deine Anwendung sendet ab
+  # und zeigt sie in einer Weboberfläche an.
+  # So kannst du E-Mails testen ohne echte E-Mails zu versenden.
+  # Port 1025 = SMTP (E-Mail-Versand)
+  # Port 8025 = Web-Oberfläche: http://localhost:8025
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: climateinsight_mailhog
+    ports:
+      - "1025:1025"   # SMTP Port (hier landen die E-Mails)
+      - "8025:8025"   # Web-Oberfläche zum Anschauen der E-Mails
+    networks:
+      - climateinsight_network

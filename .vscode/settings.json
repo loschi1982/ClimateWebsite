@@ -1,0 +1,165 @@
+{
+  // ─────────────────────────────────────────────────────────
+  // .vscode/settings.json
+  //
+  // Was ist diese Datei?
+  // Diese Datei legt fest, wie VSCode in diesem Projekt arbeitet.
+  // Die Einstellungen gelten NUR für dieses Projekt – deine
+  // persönlichen VSCode-Einstellungen bleiben unberührt.
+  //
+  // Team: Developer Setup Team | Branch: feature/developer-setup
+  // ─────────────────────────────────────────────────────────
+
+  // ── PYTHON ───────────────────────────────────────────────
+
+  // Wo liegt der Python-Interpreter im Docker-Container?
+  // Wenn du lokal (ohne Docker) entwickelst, ändere diesen Pfad
+  // auf deinen virtuellen Environment-Pfad, z. B.:
+  //   Windows:  "${workspaceFolder}\\.venv\\Scripts\\python.exe"
+  //   macOS/Linux: "${workspaceFolder}/.venv/bin/python"
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+
+  // Black ist ein automatischer Code-Formatierer für Python.
+  // Er formatiert deinen Code, damit er immer gleich aussieht –
+  // egal wer ihn geschrieben hat.
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    // Beim Speichern automatisch formatieren
+    "editor.formatOnSave": true,
+    // 4 Leerzeichen Einrückung (Python-Standard nach PEP 8)
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true
+  },
+
+  // Black-Einstellungen: maximale Zeilenlänge 88 Zeichen (Black-Standard)
+  "black-formatter.args": ["--line-length", "88"],
+
+  // Pylint prüft deinen Python-Code auf Fehler und schlechten Stil.
+  // Das ist wie ein Rechtschreibprüfer, aber für Code.
+  "python.linting.pylintEnabled": true,
+  "python.linting.enabled": true,
+
+  // ── TYPESCRIPT / JAVASCRIPT ───────────────────────────────
+
+  // Prettier ist ein automatischer Formatierer für TypeScript/JavaScript.
+  // Funktioniert genauso wie Black, aber für die Frontend-Sprachen.
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    // 2 Leerzeichen Einrückung (TypeScript/JavaScript-Standard)
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  },
+
+  // ── JSON / YAML ───────────────────────────────────────────
+
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2
+  },
+
+  // ── ZEILENENDEN ───────────────────────────────────────────
+
+  // WICHTIG für Windows-Nutzer!
+  // Windows benutzt normalerweise CRLF (\r\n) als Zeilenende.
+  // Linux/macOS benutzen LF (\n).
+  // Git und Docker erwarten LF. Wenn Windows-Nutzer CRLF committen,
+  // gibt es Fehler auf dem Server. Diese Einstellung zwingt VSCode
+  // immer LF zu benutzen – auf allen Betriebssystemen.
+  "files.eol": "\n",
+
+  // ── AUTO-SAVE ─────────────────────────────────────────────
+
+  // Dateien automatisch speichern, wenn du das Fenster/Tab wechselst.
+  // So verlierst du keine Änderungen, wenn du zwischen Dateien springst.
+  "files.autoSave": "onFocusChange",
+
+  // ── EDITOR ────────────────────────────────────────────────
+
+  // Zeigt am rechten Rand eine senkrechte Linie bei 88 Zeichen (für Python)
+  // und 100 Zeichen (für TypeScript). Das erinnert dich, Zeilen nicht
+  // zu lang werden zu lassen – lange Zeilen sind schwerer zu lesen.
+  "editor.rulers": [88, 100],
+
+  // Zeigt unsichtbare Zeichen (Leerzeichen, Tabs) als kleine Punkte an.
+  // Nützlich um versehentliche Leerzeichen am Zeilenende zu finden.
+  "editor.renderWhitespace": "boundary",
+
+  // Zeilennummern im Editor anzeigen
+  "editor.lineNumbers": "on",
+
+  // Klammern farblich hervorheben, damit du siehst welche
+  // öffnende Klammer zu welcher schließenden gehört
+  "editor.bracketPairColorization.enabled": true,
+
+  // ── DATEIEN AUSBLENDEN ────────────────────────────────────
+
+  // Diese Ordner/Dateien sind automatisch generiert oder enthalten
+  // private Daten – sie werden im Explorer ausgeblendet, damit
+  // du dich auf den echten Code konzentrieren kannst.
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/*.pyc": true,
+    "**/.pytest_cache": true,
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/.env": true
+  },
+
+  // ── REST CLIENT ───────────────────────────────────────────
+
+  // Standard-Umgebung für den REST Client (für manuelle API-Tests).
+  // Die Variablen sind in tests/api/manual_tests.http definiert.
+  "rest-client.environmentVariables": {
+    "local": {
+      "baseUrl": "http://localhost:8000",
+      "frontendUrl": "http://localhost:3000"
+    }
+  },
+
+  // ── GIT ───────────────────────────────────────────────────
+
+  // Automatisch nach jedem Commit alle Branches vom Server laden.
+  // So siehst du immer den aktuellen Stand aller Team-Branches.
+  "git.autofetch": true,
+
+  // Warnt dich, bevor du in den main-Branch committen würdest.
+  // (Als Erinnerung: wir arbeiten NUR in feature/developer-setup!)
+  "git.branchProtection": ["main", "develop"],
+
+  // ── TERMINAL ──────────────────────────────────────────────
+
+  // Auf Windows: Git Bash als Standard-Terminal verwenden.
+  // Git Bash unterstützt Unix-Befehle (ls, cat usw.) die in dieser
+  // Anleitung verwendet werden.
+  "terminal.integrated.defaultProfile.windows": "Git Bash",
+
+  // ── DOCKER ────────────────────────────────────────────────
+
+  // Die Docker-Erweiterung soll standardmäßig den Compose-Stack anzeigen
+  "docker.showStartPage": false
+}
