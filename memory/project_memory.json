@@ -1,0 +1,252 @@
+{
+  "schema_version": "1.0",
+  "project": "ClimateInsight",
+  "last_updated": "2026-03-05T10:00:00Z",
+
+  "architecture_decisions": [
+    {
+      "id": "adr_001",
+      "timestamp": "2026-03-05T10:00:00Z",
+      "team": "system_architect",
+      "topic": "Datenbankwahl für Zeitreihen",
+      "decision": "TimescaleDB als primäre Zeitreihendatenbank",
+      "reasoning": "Klimadaten sind primär Zeitreihendaten. TimescaleDB bietet 10-100x bessere Performance als plain PostgreSQL und unterstützt gleichzeitig relationale Verknüpfungen.",
+      "alternatives_considered": ["InfluxDB", "QuestDB", "plain PostgreSQL"],
+      "impact": ["data_pipeline_team", "climate_analysis_team", "visualization_team"],
+      "status": "accepted"
+    },
+    {
+      "id": "adr_002",
+      "timestamp": "2026-03-05T10:00:00Z",
+      "team": "system_architect",
+      "topic": "Frontend-Framework",
+      "decision": "Next.js 15 mit App Router und TypeScript",
+      "reasoning": "SSR für SEO, TypeScript für Typsicherheit im Multi-Team-Betrieb, App Router für moderne Datenladestrategien.",
+      "alternatives_considered": ["Vue.js + Nuxt", "SvelteKit", "React SPA"],
+      "impact": ["frontend_team", "ux_team"],
+      "status": "accepted"
+    },
+    {
+      "id": "adr_003",
+      "timestamp": "2026-03-05T10:00:00Z",
+      "team": "system_architect",
+      "topic": "KI-Artikel-Workflow",
+      "decision": "Kein generierter Artikel wird ohne menschliche Prüfung veröffentlicht",
+      "reasoning": "Wissenschaftliche Plattform — automatische Veröffentlichung würde die Glaubwürdigkeit gefährden. Status 'pending_review' ist Pflicht.",
+      "alternatives_considered": ["Automatische Veröffentlichung mit Confidence-Score"],
+      "impact": ["ai_explanation_team", "frontend_team"],
+      "status": "accepted",
+      "non_negotiable": true
+    },
+    {
+      "id": "adr_004",
+      "timestamp": "2026-03-05T10:00:00Z",
+      "team": "system_architect",
+      "topic": "API-Versionierung",
+      "decision": "URL-Pfad-Versionierung (/api/v1/)",
+      "reasoning": "Einfach, explizit, keine Header-Magie. Teams können v1 stabil halten während v2 entwickelt wird.",
+      "impact": ["all_teams"],
+      "status": "accepted"
+    },
+    {
+      "id": "adr_005",
+      "timestamp": "2026-03-05T10:00:00Z",
+      "team": "system_architect",
+      "topic": "Simulationsort (client vs. server)",
+      "decision": "OFFEN — noch nicht entschieden",
+      "reasoning": "Server-seitig ist zuverlässiger, client-seitig (WASM) ermöglicht Echtzeit-Interaktion. Simulation Team und Frontend Team müssen gemeinsam entscheiden.",
+      "impact": ["simulation_team", "frontend_team"],
+      "status": "open"
+    }
+  ],
+
+  "api_definitions": [
+    {
+      "id": "api_ingestion_v1",
+      "module": "data_ingestion",
+      "version": "1.0",
+      "defined_by": "system_architect",
+      "spec_file": "memory/api_contracts.md",
+      "owner_team": "data_pipeline_team",
+      "consumers": ["climate_analysis_team", "visualization_team", "frontend_team"],
+      "status": "defined_not_implemented"
+    },
+    {
+      "id": "api_analysis_v1",
+      "module": "climate_analysis",
+      "version": "1.0",
+      "owner_team": "climate_analysis_team",
+      "consumers": ["visualization_team", "simulation_team", "ai_explanation_team", "frontend_team"],
+      "status": "defined_not_implemented"
+    },
+    {
+      "id": "api_viz_v1",
+      "module": "visualization_engine",
+      "version": "1.0",
+      "owner_team": "visualization_team",
+      "consumers": ["frontend_team"],
+      "status": "defined_not_implemented"
+    },
+    {
+      "id": "api_simulation_v1",
+      "module": "simulation_engine",
+      "version": "1.0",
+      "owner_team": "simulation_team",
+      "consumers": ["frontend_team"],
+      "status": "defined_not_implemented"
+    },
+    {
+      "id": "api_knowledge_v1",
+      "module": "knowledge_base",
+      "version": "1.0",
+      "owner_team": "data_pipeline_team",
+      "consumers": ["ai_explanation_team", "frontend_team"],
+      "status": "defined_not_implemented"
+    },
+    {
+      "id": "api_explain_v1",
+      "module": "ai_explanation",
+      "version": "1.0",
+      "owner_team": "ai_explanation_team",
+      "consumers": ["frontend_team"],
+      "status": "defined_not_implemented"
+    }
+  ],
+
+  "data_sources": [
+    {
+      "id": "nasa_giss_surface_temp",
+      "name": "GISS Surface Temperature Analysis (GISTEMP v4)",
+      "provider": "NASA",
+      "url": "https://data.giss.nasa.gov/gistemp/",
+      "doi": "10.7289/V5MGNM48",
+      "variables": ["surface_temperature_anomaly"],
+      "temporal_coverage": "1880-present",
+      "temporal_resolution": "monthly",
+      "spatial_resolution": "global, 2°x2° grid",
+      "format": "CSV / NetCDF",
+      "license": "public_domain",
+      "status": "planned",
+      "priority": 1
+    },
+    {
+      "id": "noaa_co2_mauna_loa",
+      "name": "Mauna Loa CO2 Monthly Mean",
+      "provider": "NOAA GML",
+      "url": "https://gml.noaa.gov/ccgg/trends/",
+      "variables": ["co2_concentration"],
+      "temporal_coverage": "1958-present",
+      "temporal_resolution": "monthly",
+      "format": "CSV",
+      "license": "public_domain",
+      "status": "planned",
+      "priority": 2
+    },
+    {
+      "id": "nsidc_sea_ice_extent",
+      "name": "Sea Ice Index",
+      "provider": "NSIDC",
+      "url": "https://nsidc.org/data/seaice_index/",
+      "variables": ["sea_ice_extent"],
+      "temporal_coverage": "1979-present",
+      "temporal_resolution": "monthly",
+      "format": "CSV / GeoTIFF",
+      "license": "public_domain",
+      "status": "planned",
+      "priority": 3
+    },
+    {
+      "id": "nasa_sea_level",
+      "name": "NASA Sea Level Change",
+      "provider": "NASA / CNES",
+      "url": "https://sealevel.nasa.gov/",
+      "variables": ["sea_level_change"],
+      "temporal_coverage": "1993-present",
+      "temporal_resolution": "monthly",
+      "format": "CSV / NetCDF",
+      "license": "public_domain",
+      "status": "planned",
+      "priority": 4
+    }
+  ],
+
+  "analysis_methods": [
+    {
+      "id": "method_ols_trend",
+      "name": "Lineare Trendanalyse (OLS)",
+      "module": "climate_analysis",
+      "implementation": "scipy.stats.linregress",
+      "reference": "Montgomery et al. (2012) - Introduction to Linear Regression Analysis",
+      "validated": false,
+      "status": "planned"
+    }
+  ],
+
+  "visualization_patterns": [],
+
+  "team_progress": {
+    "data_pipeline_team": {
+      "status": "not_started",
+      "completed_tasks": [],
+      "in_progress": [],
+      "blockers": []
+    },
+    "climate_analysis_team": {
+      "status": "not_started",
+      "completed_tasks": [],
+      "in_progress": [],
+      "blockers": ["Wartet auf erste Datensätze vom Data Pipeline Team"]
+    },
+    "visualization_team": {
+      "status": "not_started",
+      "completed_tasks": [],
+      "blockers": ["Wartet auf Analyseergebnisse"]
+    },
+    "simulation_team": {
+      "status": "not_started",
+      "completed_tasks": [],
+      "blockers": ["ADR_005 (Simulationsort) noch offen"]
+    },
+    "frontend_team": {
+      "status": "not_started",
+      "completed_tasks": [],
+      "blockers": []
+    },
+    "ai_explanation_team": {
+      "status": "not_started",
+      "completed_tasks": [],
+      "blockers": ["Wartet auf erste Wissensbasis-Einträge"]
+    },
+    "ux_team": {
+      "status": "not_started",
+      "completed_tasks": [],
+      "blockers": []
+    },
+    "documentation_team": {
+      "status": "not_started",
+      "completed_tasks": [],
+      "blockers": []
+    }
+  },
+
+  "lessons_learned": [],
+
+  "open_questions": [
+    {
+      "id": "oq_001",
+      "question": "Sollen Simulationen server-seitig (Python) oder client-seitig (WebAssembly) laufen?",
+      "raised_by": "system_architect",
+      "raised_at": "2026-03-05T10:00:00Z",
+      "impact": ["simulation_team", "frontend_team"],
+      "status": "open"
+    },
+    {
+      "id": "oq_002",
+      "question": "Welche Sprachen soll die Plattform initial unterstützen? (DE + EN?)",
+      "raised_by": "system_architect",
+      "raised_at": "2026-03-05T10:00:00Z",
+      "impact": ["frontend_team", "ai_explanation_team", "ux_team"],
+      "status": "open"
+    }
+  ]
+}
