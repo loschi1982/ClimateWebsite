@@ -1,10 +1,9 @@
 # ClimateInsight – Lokale Einrichtungsanleitung
 
 > **Für wen ist diese Anleitung?**  
-> Für absolute Anfänger ohne Vorkenntnisse. Jeder Schritt wird erklärt.  
-> Wenn du noch nie ein Entwicklerprojekt aufgesetzt hast – kein Problem!
+> Für absolute Anfänger ohne Vorkenntnisse. Jeder Schritt wird erklärt.
 
-> **Betriebssysteme:** Windows 10/11 · macOS 12+ · Ubuntu 22.04+
+> **Betriebssysteme:** Windows 10/11 · macOS 12+ · Ubuntu 22.04 / Zorin OS 17
 
 ---
 
@@ -27,24 +26,23 @@ Du brauchst vier Programme. Installiere sie in dieser Reihenfolge.
 
 ### 1.1 Git
 
-Git ist ein Versionskontrollsystem. Es merkt sich jede Änderung an Dateien und ermöglicht die Zusammenarbeit mit anderen Entwicklern.
+Git ist ein Versionskontrollsystem. Es merkt sich jede Änderung an Dateien und ermöglicht die Zusammenarbeit aller neun Teams.
 
 **Windows:**
 1. Öffne https://git-scm.com/download/win
 2. Lade den Installer herunter und führe ihn aus
 3. Klicke überall auf **Next** – die Standardeinstellungen sind richtig
-4. Wähle bei "Default editor" → **Visual Studio Code** (wenn du es bereits installiert hast)
+4. Wähle bei "Default editor" → **Visual Studio Code**
+5. Wähle bei "Adjust your PATH" → **Git from the command line and also from 3rd-party software**
 
 **macOS:**
 ```bash
-# Homebrew (ein Paketmanager) installieren – falls noch nicht vorhanden:
+# Homebrew installieren (falls noch nicht vorhanden):
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-# Git installieren:
 brew install git
 ```
 
-**Ubuntu/Linux:**
+**Ubuntu 22.04 / Zorin OS 17:**
 ```bash
 sudo apt update && sudo apt install git -y
 ```
@@ -59,51 +57,50 @@ git --version
 
 ### 1.2 Visual Studio Code (VSCode)
 
-VSCode ist ein kostenloser Code-Editor der für dieses Projekt konfiguriert ist.
-
 1. Öffne https://code.visualstudio.com/
 2. Lade VSCode für dein Betriebssystem herunter
-3. Installiere es mit den Standardeinstellungen
+3. Installiere mit Standardeinstellungen
+4. Windows: Aktiviere **"Add to PATH"** im Installer (wichtig für `code .` im Terminal!)
 
-**✅ Prüfen ob es funktioniert hat:**  
-Öffne VSCode – das Programm sollte sich öffnen ohne Fehlermeldung.
+**✅ Prüfen ob es funktioniert hat:**
+```bash
+code --version
+# Erwartete Ausgabe: 1.x.x
+```
 
 ---
 
 ### 1.3 Docker Desktop
 
-Docker startet alle Services (Datenbank, Backend, Frontend) in isolierten Containern. Du brauchst keine Programme manuell zu installieren.
+Docker startet alle Services (TimescaleDB, Redis, MinIO, API Gateway, Frontend) gleichzeitig.
 
 **Windows:**
 1. Öffne https://www.docker.com/products/docker-desktop/
-2. Lade **Docker Desktop for Windows** herunter
-3. Installiere es und starte deinen Computer neu
-4. Starte Docker Desktop – warte bis das Docker-Symbol in der Taskleiste grün wird
+2. Lade **Docker Desktop for Windows** herunter und installiere es
+3. Starte deinen Computer neu
+4. Starte Docker Desktop – warte bis das Symbol in der Taskleiste grün wird
 
 > **Windows-Nutzer:** Docker benötigt WSL 2 (Windows Subsystem for Linux).  
-> Der Installer richtet das automatisch ein – folge den Anweisungen auf dem Bildschirm.
+> Der Installer richtet das automatisch ein.
 
 **macOS:**
 ```bash
 brew install --cask docker
-# Dann öffne Docker Desktop aus dem Programme-Ordner
+# Dann: Docker Desktop aus dem Programme-Ordner öffnen
 ```
 
-**Ubuntu/Linux:**
+**Ubuntu 22.04 / Zorin OS 17:**
 ```bash
-# Docker Engine installieren:
 curl -fsSL https://get.docker.com | sh
 sudo usermod -aG docker $USER
-# Abmelden und neu anmelden damit die Gruppe aktiv wird
-
-# Docker Compose Plugin:
+# Abmelden und wieder anmelden damit die Gruppe aktiv wird
 sudo apt install docker-compose-plugin -y
 ```
 
 **✅ Prüfen ob es funktioniert hat:**
 ```bash
 docker --version
-# Erwartete Ausgabe: Docker version 26.x.x, build ...
+# Erwartete Ausgabe: Docker version 26.x.x
 
 docker compose version
 # Erwartete Ausgabe: Docker Compose version v2.x.x
@@ -113,14 +110,14 @@ docker compose version
 
 ### 1.4 Node.js
 
-Node.js wird für das Next.js Frontend benötigt.
+Wird für das Next.js 15 Frontend benötigt.
 
 **Windows & macOS:**
 1. Öffne https://nodejs.org/
-2. Lade die **LTS**-Version herunter (die empfohlene stabile Version)
+2. Lade die **LTS**-Version herunter
 3. Installiere mit Standardeinstellungen
 
-**Ubuntu/Linux:**
+**Ubuntu 22.04 / Zorin OS 17:**
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install nodejs -y
@@ -128,41 +125,35 @@ sudo apt install nodejs -y
 
 **✅ Prüfen ob es funktioniert hat:**
 ```bash
-node --version
-# Erwartete Ausgabe: v20.x.x (oder höher)
-
-npm --version
-# Erwartete Ausgabe: 10.x.x (oder höher)
+node --version    # Erwartete Ausgabe: v20.x.x oder höher
+npm --version     # Erwartete Ausgabe: 10.x.x oder höher
 ```
 
 ---
 
 ## 2. VSCode einrichten und Erweiterungen installieren
 
-### 2.1 Erweiterungen installieren
-
-Das Projekt enthält eine Datei `.vscode/extensions.json` mit allen empfohlenen Erweiterungen. VSCode installiert sie automatisch.
+Das Projekt enthält `.vscode/extensions.json` – VSCode schlägt alle Erweiterungen automatisch vor.
 
 1. Öffne VSCode
-2. Öffne den Extensions-Bereich: **Strg+Shift+X** (Windows/Linux) oder **Cmd+Shift+X** (macOS)
-3. Tippe in die Suchleiste: `@recommended`
-4. Klicke auf den **Cloud-mit-Pfeil-Button** ("Install Workspace Recommended Extensions")
+2. Extensions öffnen: **Strg+Shift+X** (Windows/Linux) oder **Cmd+Shift+X** (macOS)
+3. Suche nach: `@recommended`
+4. Klicke auf **"Install Workspace Recommended Extensions"**
 
-**Alternativ – Erweiterungen einzeln suchen und installieren:**
+Die wichtigsten Erweiterungen und wozu sie dienen:
 
-| Erweiterung | Wozu? |
+| Erweiterung | Zweck |
 |---|---|
-| Python | Python-Code verstehen und ausführen |
-| Black Formatter | Python-Code automatisch formatieren |
-| Pylint | Python-Fehler erkennen |
-| Prettier | TypeScript/JavaScript formatieren |
-| ESLint | TypeScript-Fehler erkennen |
-| Docker | Container verwalten |
-| REST Client | API-Tests direkt in VSCode |
-| GitLens | Git-Historie anzeigen |
+| Python + Pylance + Black | Python-Code schreiben und formatieren |
+| Prettier + ESLint | TypeScript/Next.js formatieren |
+| REST Client | API-Tests direkt in VSCode (für `manual_tests.http`) |
+| Docker | Container verwalten ohne Terminal |
+| GitLens | Git-Historie nachvollziehen |
+| Tailwind CSS IntelliSense | Autovervollständigung für shadcn/ui-Klassen |
+| YAML + OpenAPI | `api/openapi.yaml` mit Syntax-Prüfung bearbeiten |
 
 **✅ Prüfen ob es funktioniert hat:**  
-Unten links in VSCode siehst du Symbole für Python und Git. Wenn du eine `.py`-Datei öffnest, erscheint oben der Interpreter-Status.
+Unten links in VSCode siehst du das Python- und Git-Symbol. Wenn du eine `.py`-Datei öffnest, erscheint der Interpreter-Status.
 
 ---
 
@@ -170,55 +161,106 @@ Unten links in VSCode siehst du Symbole für Python und Git. Wenn du eine `.py`-
 
 ### Was bedeutet "klonen"?
 
-Klonen bedeutet: eine Kopie des Projekts auf deinen Computer herunterladen.
+Klonen = eine vollständige Kopie des Projekts auf deinen Computer herunterladen.
 
 ### 3.1 Repository klonen
 
 Öffne ein Terminal:
-- **Windows:** Rechtsklick auf den Desktop → "Git Bash Here" (oder Suche nach "Git Bash")
-- **macOS/Linux:** Terminal-App öffnen
+- **Windows:** Git Bash (Rechtsklick → "Git Bash Here")
+- **macOS/Linux:** Terminal
 
 ```bash
-# Navigiere zu dem Ordner wo du das Projekt speichern möchtest.
-# Beispiel: Ordner "Projekte" im Home-Verzeichnis erstellen und öffnen
+# Projektordner erstellen und öffnen
 mkdir -p ~/Projekte
 cd ~/Projekte
 
-# Repository klonen (herunterladen):
+# Repository klonen
 git clone https://github.com/loschi1982/ClimateWebsite.git
 
-# In den Projektordner wechseln:
+# In den Projektordner wechseln
 cd ClimateWebsite
 ```
 
 ### 3.2 In den richtigen Branch wechseln
 
-> ⚠️ **Wichtige Regel:** Jedes Team arbeitet NUR in seinem eigenen Branch!  
+> ⚠️ **Jedes Team arbeitet NUR in seinem eigenen Branch** (Regel G1)  
 > Als Developer Setup Team arbeitest du in `feature/developer-setup`.
 
 ```bash
-# Zum Developer Setup Branch wechseln:
+# Zum richtigen Branch wechseln
 git checkout feature/developer-setup
 
-# Prüfen ob du im richtigen Branch bist:
+# Prüfen ob du im richtigen Branch bist
 git branch
 # Der aktive Branch hat ein * davor:
 #   main
 # * feature/developer-setup
 ```
 
+**Alle Team-Branches auf einen Blick:**
+
+| Branch | Team |
+|---|---|
+| `feature/data-pipeline` | Data Pipeline Team |
+| `feature/climate-analysis` | Climate Analysis Team |
+| `feature/visualization` | Visualization Team |
+| `feature/simulation` | Simulation Team |
+| `feature/frontend` | Frontend Team |
+| `feature/ai-explanation` | AI Explanation Team |
+| `feature/ux` | UX Team |
+| `feature/documentation` | Documentation Team |
+| `feature/developer-setup` | **Developer Setup Team (du!)** |
+
 ### 3.3 Projekt in VSCode öffnen
 
 ```bash
-# Projekt in VSCode öffnen (im selben Terminal-Fenster):
 code .
 ```
 
-**Was passiert als nächstes:**  
-VSCode öffnet das Projekt. Unten rechts erscheint eine Meldung: *"Do you want to install the recommended extensions?"* → Klicke auf **Install All**.
+VSCode öffnet das Projekt. Eine Meldung erscheint: *"Do you want to install the recommended extensions?"* → Klicke **Install All**.
+
+**Repository-Struktur (vereinfacht):**
+```
+ClimateWebsite/
+├── services/
+│   └── api_gateway/          ← FastAPI Gateway (Einstiegspunkt Backend)
+│       └── src/
+│           ├── routers/       ← Ein Router pro Modul
+│           └── main.py
+├── modules/                  ← Kernmodule
+│   ├── data_ingestion/       ← NASA, NOAA, Copernicus usw.
+│   ├── climate_analysis/     ← Trends, Anomalien, Korrelationen
+│   ├── visualization_engine/ ← Vega-Lite Spec Generator
+│   ├── simulation_engine/    ← IPCC-Szenarien
+│   ├── knowledge_base/       ← Wissensbasis
+│   └── ai_explanation/       ← RAG + Claude-Artikel
+├── frontend/                 ← Next.js 15 (App Router)
+│   └── src/
+│       ├── app/               ← Seiten: /, /explore, /articles, /admin
+│       ├── components/        ← Charts, Exploration, UI
+│       ├── lib/api.ts         ← Zentraler API-Client
+│       └── types/climate.ts   ← TypeScript-Typen
+├── api/
+│   └── openapi.yaml          ← API-Spezifikation (alle Endpunkte)
+├── data/
+│   ├── sources/               ← Quellendefinitionen (YAML)
+│   ├── scenarios/             ← IPCC-Szenario-Daten (RCP 2.6/4.5/8.5)
+│   └── knowledge_seeds/       ← Erste Wissensbasis-Einträge
+├── memory/                   ← Gemeinsame Projektdateien (LESEN!)
+│   ├── project_memory.json    ← Projektgedächtnis
+│   ├── project_description.md
+│   ├── architecture.md
+│   ├── api_contracts.md
+│   └── team_tasks.md
+├── tests/
+│   ├── integration/
+│   └── api/
+│       └── manual_tests.http  ← REST-Client Testdatei (du bist hier!)
+└── docker-compose.yml
+```
 
 **✅ Prüfen ob es funktioniert hat:**  
-Im VSCode Explorer (links) siehst du alle Projektdateien. Unten in der Statusleiste steht `feature/developer-setup`.
+Im VSCode Explorer siehst du alle Ordner. Unten in der Statusleiste steht `feature/developer-setup`.
 
 ---
 
@@ -226,50 +268,38 @@ Im VSCode Explorer (links) siehst du alle Projektdateien. Unten in der Statuslei
 
 ### Was sind Umgebungsvariablen?
 
-Umgebungsvariablen sind wie Einstellungen für deine Anwendung: Passwörter, Adressen und API-Schlüssel. Sie stehen in einer `.env`-Datei die **niemals in Git eingecheckt wird** (damit Passwörter nicht öffentlich werden).
+Sie enthalten Passwörter, API-Schlüssel und Adressen – und werden NICHT in Git gespeichert.
 
-### 4.1 .env-Datei aus der Vorlage erstellen
+### 4.1 .env-Datei erstellen
 
 ```bash
-# Windows (Git Bash):
-cp .env.example .env
-
-# macOS/Linux:
+# Windows (Git Bash) / macOS / Linux:
 cp .env.example .env
 ```
 
-### 4.2 .env-Datei öffnen und anpassen
+### 4.2 .env-Datei anpassen
 
 ```bash
-# Datei in VSCode öffnen:
 code .env
 ```
 
-**Für die lokale Entwicklung musst du fast nichts ändern!** Die Standardwerte in `.env.example` funktionieren direkt mit Docker Compose.
-
-**Optional: API-Schlüssel eintragen (für echte Klimadaten)**
-
-Wenn du echte NASA- oder NOAA-Daten abrufen möchtest, trage deine API-Schlüssel ein:
+**Für den ersten Start reichen die Standardwerte!** Nur wenn du echte Klimadaten abrufen möchtest, trage API-Schlüssel ein:
 
 ```bash
-# In .env:
-NASA_API_KEY=dein-schlüssel-hier       # https://api.nasa.gov/
-NOAA_API_TOKEN=dein-token-hier         # https://www.ncdc.noaa.gov/cdo-web/token
-ANTHROPIC_API_KEY=dein-schlüssel-hier  # https://console.anthropic.com/
+# NASA GISS (kostenlos, https://api.nasa.gov/):
+NASA_API_KEY=dein-schlüssel
+
+# Anthropic Claude (für AI Explanation Modul, https://console.anthropic.com/):
+ANTHROPIC_API_KEY=dein-schlüssel
 ```
 
-Für den ersten Start mit Testdaten reichen die Standardwerte.
+> **WICHTIG (ADR-003):** KI-generierte Artikel werden niemals automatisch veröffentlicht.  
+> Jeder Artikel hat immer `status: pending_review` und braucht menschliche Freigabe.
 
 **✅ Prüfen ob es funktioniert hat:**
-
 ```bash
-# Prüfe ob die .env-Datei existiert:
-ls -la .env
-# Ausgabe: -rw-r--r-- 1 ... .env
-
-# Prüfe dass die Datei NICHT in Git getrackt wird:
-git status
-# Die .env-Datei sollte NICHT in der Ausgabe erscheinen
+ls -la .env         # Datei muss existieren
+git status          # .env darf NICHT in der Liste erscheinen (steht in .gitignore)
 ```
 
 ---
@@ -278,63 +308,54 @@ git status
 
 ### 5.1 Docker Desktop starten
 
-Stelle sicher dass Docker Desktop läuft:
-- **Windows/macOS:** Docker Desktop öffnen – warte bis das Symbol grün ist / "Docker Desktop is running" erscheint
+- **Windows/macOS:** Docker Desktop öffnen – warte bis Symbol grün ist
 - **Linux:** `sudo systemctl start docker`
 
 ### 5.2 Alle Services starten
 
 ```bash
-# Im Projektordner (ClimateWebsite):
+# Im Projektordner (ClimateWebsite/):
 docker compose up
 ```
 
-**Was passiert jetzt?**  
-Docker lädt alle benötigten Images herunter (beim ersten Start ca. 5–10 Minuten) und startet alle Services. Du siehst viele Log-Nachrichten – das ist normal!
+**Beim ersten Start** lädt Docker alle Images herunter (ca. 5–10 Minuten). Du siehst viele Log-Nachrichten – das ist normal.
 
 **Warte auf diese Meldungen:**
 ```
 climateinsight_db      | database system is ready to accept connections
 climateinsight_api     | Application startup complete.
-climateinsight_frontend| Ready in 3.2s
+climateinsight_frontend| ✓ Ready in 3.2s
 ```
 
 **Im Hintergrund starten (empfohlen nach dem ersten Mal):**
 ```bash
-# -d = detached (im Hintergrund)
 docker compose up -d
 ```
 
 ### 5.3 Services prüfen
 
-Öffne diese Adressen im Browser – sie sollten alle funktionieren:
+Öffne diese Adressen im Browser:
 
 | Service | Adresse | Was du siehst |
 |---|---|---|
-| **API Backend** | http://localhost:8000/health | `{"status": "ok"}` |
-| **API Docs** | http://localhost:8000/docs | Interaktive Swagger-Dokumentation |
+| **API Gateway** | http://localhost:8000/health | `{"status": "ok"}` |
+| **API Docs** | http://localhost:8000/docs | Automatische FastAPI-Dokumentation |
 | **Frontend** | http://localhost:3000 | ClimateInsight Weboberfläche |
-| **Swagger UI** | http://localhost:8080 | Alternative API-Dokumentation |
-| **MinIO** | http://localhost:9001 | Dateispeicher-Weboberfläche |
+| **Swagger UI** | http://localhost:8080 | Interaktive API-Dokumentation (openapi.yaml) |
+| **MinIO Web** | http://localhost:9001 | Objektspeicher für Rohdaten |
 
-**Anmeldung MinIO:** Benutzer: `climateinsight` · Passwort: `password123`
+**MinIO-Login:** Benutzer `climateinsight` · Passwort `password123`
 
 **Services stoppen:**
 ```bash
-# Alle Services stoppen:
-docker compose down
-
-# Alle Services stoppen UND alle Daten löschen (Vorsicht!):
-docker compose down -v
+docker compose down         # Services stoppen (Daten bleiben erhalten)
+docker compose down -v      # Services stoppen UND alle Daten löschen (Vorsicht!)
 ```
 
 **✅ Prüfen ob es funktioniert hat:**
 ```bash
-# Zeigt alle laufenden Container:
 docker compose ps
-
-# Alle Container sollten den Status "running" haben:
-# NAME                     STATUS
+# Alle 6 Container sollten Status "running" haben:
 # climateinsight_api       running
 # climateinsight_frontend  running
 # climateinsight_db        running
@@ -349,125 +370,131 @@ docker compose ps
 
 ### 6.1 REST Client in VSCode verwenden
 
-1. Öffne in VSCode die Datei: `tests/api/manual_tests.http`
-2. Wähle die Umgebung: Klick auf **"No Environment"** unten rechts → wähle **"local"**
-3. Fahre mit der Maus über den ersten Request:
-   ```
-   GET http://localhost:8000/health
-   ```
+1. Öffne: `tests/api/manual_tests.http`
+2. Wähle Umgebung: Klick auf **"No Environment"** unten rechts → **"local"**
+3. Scrolle zum ersten Request (`GET {{baseUrl}}/health`)
 4. Klicke auf **"Send Request"** das über dem Request erscheint
 5. Rechts öffnet sich ein Tab mit der Antwort:
-   ```json
-   {
-     "status": "ok",
-     "version": "1.0.0"
-   }
-   ```
 
-### 6.2 Ersten echten Request senden
+```json
+{
+  "status": "ok",
+  "version": "1.0"
+}
+```
 
-Teste den Ingestion-Endpoint um verfügbare Datensätze zu sehen:
+### 6.2 Alle Module testen
 
-1. Scrolle in `manual_tests.http` zu `# INGESTION: Alle verfügbaren Datensätze auflisten`
-2. Klicke auf "Send Request"
-3. Du siehst alle verfügbaren Klimadatensätze
+Die `manual_tests.http`-Datei enthält Requests für alle sieben Module:
+
+| Abschnitt | Was getestet wird |
+|---|---|
+| Health Check | Backend läuft |
+| Ingestion | Datenquellen, Datensätze, Jobs abrufen |
+| Analysis | Trendanalyse, Anomalien, Korrelation |
+| Visualization | Diagramme erstellen und exportieren |
+| Simulation | IPCC-Szenarien (RCP 2.6 / 4.5 / 8.5) |
+| Knowledge Base | Wissensbasis suchen und erstellen |
+| AI Explanation | Artikel generieren und reviewen |
+| Exploration | Variablen vergleichen, Ansicht teilen |
+
+**Empfohlene Reihenfolge:**
+1. Health → prüfen ob Backend läuft
+2. Ingestion Sources → Datenquellen sehen
+3. Ingestion Datasets → Datensätze sehen
+4. Analysis Run → Trendanalyse starten, `analysis_id` notieren
+5. Visualization Create → Diagramm erstellen, `viz_id` notieren
 
 **✅ Prüfen ob es funktioniert hat:**  
-Du bekommst eine JSON-Antwort ohne Fehlermeldung. HTTP-Status 200 erscheint oben im Antwort-Tab.
+HTTP-Status 200 (oder 201/202) erscheint oben im Antwort-Tab.
 
 ---
 
 ## 7. Code einfügen
 
-### 7.1 In welche Datei gehört mein Code?
+### 7.1 In welchen Ordner gehört mein Code?
 
-Jedes Team hat seinen eigenen Ordner:
+Jedes Team hat einen klaren Bereich:
 
 ```
-ClimateWebsite/
-├── api/                    ← Backend (Python/FastAPI)
-│   ├── ingestion/          ← Data Pipeline Team
-│   ├── analysis/           ← Climate Analysis Team
-│   ├── simulation/         ← Simulation Team
-│   └── ai_explanation/     ← AI Explanation Team
-├── frontend/               ← Frontend Team (Next.js)
-├── docs/                   ← Documentation Team
-│   └── deployment/         ← Developer Setup Team (hier!)
-└── memory/                 ← Gemeinsame Projektdateien
+modules/data_ingestion/src/         ← Data Pipeline Team
+modules/climate_analysis/src/       ← Climate Analysis Team
+modules/visualization_engine/src/   ← Visualization Team
+modules/simulation_engine/src/      ← Simulation Team
+modules/knowledge_base/             ← Data Pipeline Team
+modules/ai_explanation/src/         ← AI Explanation Team
+services/api_gateway/src/routers/   ← Alle Teams (je ein Router)
+frontend/src/                       ← Frontend Team
+docs/                               ← Documentation Team
+docs/deployment/                    ← Developer Setup Team (hier!)
+.vscode/                            ← Developer Setup Team
 ```
 
-### 7.2 Neue Datei erstellen
+> **Regel G1:** Du erstellst Dateien NUR in deinem Branch (`feature/developer-setup`).  
+> Du änderst KEINE Dateien in `main` oder fremden Branches.
+
+### 7.2 Neue Datei erstellen und committen
 
 ```bash
-# Beispiel: Neue Python-Datei im richtigen Ordner erstellen
-touch api/ingestion/my_new_connector.py
+# Schritt 1: Prüfen ob du im richtigen Branch bist
+git branch
+# * feature/developer-setup  ← muss so aussehen
 
-# Dann in VSCode öffnen:
-code api/ingestion/my_new_connector.py
-```
+# Schritt 2: Datei erstellen (Beispiel)
+touch docs/deployment/meine-neue-datei.md
 
-### 7.3 Änderungen speichern und committen
+# Schritt 3: Datei in VSCode öffnen und bearbeiten
+code docs/deployment/meine-neue-datei.md
 
-> ⚠️ **Erst prüfen:** Bist du im richtigen Branch?
-> ```bash
-> git branch  # Der aktive Branch hat ein * davor
-> ```
-
-```bash
-# Schritt 1: Welche Dateien hast du geändert?
+# Schritt 4: Änderungen anzeigen
 git status
 
-# Schritt 2: Änderungen für den Commit vorbereiten ("stagen")
-# Einzelne Datei:
-git add api/ingestion/my_new_connector.py
-
-# Alle Änderungen auf einmal:
+# Schritt 5: Änderungen für Commit vorbereiten
+git add docs/deployment/meine-neue-datei.md
+# oder alle Änderungen auf einmal:
 git add .
 
-# Schritt 3: Commit mit aussagekräftiger Message erstellen
-# Format: typ(bereich): kurze Beschreibung
-git commit -m "feat(connector): NASA GISS Connector implementiert"
+# Schritt 6: Commit erstellen (Regel G2: Format beachten!)
+git commit -m "docs(setup): Neue Anleitung hinzugefügt"
 
-# Schritt 4: Änderungen auf GitHub hochladen ("pushen")
+# Schritt 7: Auf GitHub hochladen
 git push origin feature/developer-setup
 ```
 
-**Erlaubte Commit-Typen:**
+### 7.3 Commit-Message Format (Regel G2)
+
+```
+typ(bereich): kurze Beschreibung
+```
 
 | Typ | Bedeutung | Beispiel |
 |---|---|---|
-| `feat` | Neues Feature | `feat(connector): NOAA Connector hinzugefügt` |
-| `fix` | Bugfix | `fix(api): Timeout-Fehler behoben` |
-| `docs` | Dokumentation | `docs(setup): Anleitung ergänzt` |
-| `test` | Tests | `test(analysis): Unit Tests für Trend` |
-| `refactor` | Code-Umbau | `refactor(pipeline): Klasse aufgeteilt` |
-| `chore` | Wartung | `chore(deps): Pakete aktualisiert` |
+| `feat` | Neues Feature | `feat(connector): NASA GISS Connector` |
+| `fix` | Bugfix | `fix(api): Timeout in /ingestion/trigger` |
+| `docs` | Dokumentation | `docs(setup): Troubleshooting ergänzt` |
+| `test` | Tests | `test(analysis): OLS-Trend Unit Tests` |
+| `refactor` | Code-Umbau | `refactor(pipeline): Validierung ausgelagert` |
+| `chore` | Wartung/Konfiguration | `chore(docker): Port für MinIO korrigiert` |
 
-### 7.4 Häufige Fehler beim Committing
+> **Regel G4:** Wenn du `memory/project_memory.json` aktualisierst,  
+> ist das ein eigener Commit: `chore(memory): [was du dokumentiert hast]`
 
-**Problem:** `error: failed to push some refs`  
-**Lösung:** Hole zuerst die neuesten Änderungen:
+### 7.4 Häufige Fehler
+
+**Problem:** `error: failed to push some refs`
 ```bash
 git pull origin feature/developer-setup
-# Dann erneut pushen:
 git push origin feature/developer-setup
 ```
 
-**Problem:** Versehentlich auf `main` gearbeitet  
-**Lösung:**
+**Problem:** Versehentlich auf `main` gearbeitet
 ```bash
-# Änderungen temporär speichern:
-git stash
-
-# Zum richtigen Branch wechseln:
-git checkout feature/developer-setup
-
-# Gespeicherte Änderungen wiederherstellen:
-git stash pop
+git stash                              # Änderungen zwischenspeichern
+git checkout feature/developer-setup   # Richtigen Branch wechseln
+git stash pop                          # Änderungen wiederherstellen
 ```
 
-**Problem:** Commit-Message falsch geschrieben  
-**Lösung:** (nur wenn noch nicht gepusht!)
+**Problem:** Letzte Commit-Message korrigieren (nur wenn noch nicht gepusht!)
 ```bash
 git commit --amend -m "feat(connector): NASA GISS Connector implementiert"
 ```
@@ -476,149 +503,115 @@ git commit --amend -m "feat(connector): NASA GISS Connector implementiert"
 
 ## 8. Troubleshooting
 
-### Problem: Docker startet nicht
-
-**Symptom:** `docker compose up` gibt Fehler aus oder Container starten nicht.
+### Docker startet nicht
 
 ```bash
-# Logs eines bestimmten Services anzeigen:
+# Logs eines Services anzeigen:
 docker compose logs api_gateway
 docker compose logs db
 
-# Alles stoppen und neu starten:
+# Alles stoppen und neu bauen:
 docker compose down
 docker compose up --build
 ```
 
-**Windows-spezifisch:** Stelle sicher dass WSL 2 aktiviert ist:
+**Windows:** Prüfe ob WSL 2 aktiv ist:
 ```powershell
-# In PowerShell (als Administrator):
+# PowerShell als Administrator:
 wsl --update
 wsl --set-default-version 2
 ```
 
 ---
 
-### Problem: Port bereits belegt
+### Port bereits belegt
 
-**Symptom:** `Error: bind: address already in use` für Port 8000, 3000 oder 5432.
+**Symptom:** `Error: bind: address already in use` (Port 8000, 3000, 5432 usw.)
 
 ```bash
-# Welches Programm nutzt Port 8000?
 # Windows (Git Bash):
 netstat -ano | grep 8000
+taskkill /PID 12345 /F
+
 # macOS/Linux:
 lsof -i :8000
-
-# Prozess beenden (ersetze PID mit der Prozess-ID aus dem vorherigen Befehl):
-# Windows:
-taskkill /PID 12345 /F
-# macOS/Linux:
 kill -9 12345
 ```
 
 ---
 
-### Problem: Python-Interpreter nicht gefunden
-
-**Symptom:** VSCode zeigt "No Python interpreter selected" oder Importe werden nicht erkannt.
+### Python-Interpreter nicht gefunden
 
 ```bash
-# Virtuelles Environment erstellen:
+# Virtuelles Environment erstellen und aktivieren:
 python -m venv .venv
 
-# Aktivieren:
 # Windows (Git Bash):
 source .venv/Scripts/activate
+
 # macOS/Linux:
 source .venv/bin/activate
 
 # Abhängigkeiten installieren:
-pip install -r requirements.txt
+pip install -r services/api_gateway/requirements.txt
+pip install -r modules/data_ingestion/requirements.txt
 ```
 
-Dann in VSCode: **Strg+Shift+P** → "Python: Select Interpreter" → `.venv` auswählen.
+Dann in VSCode: **Strg+Shift+P** → `Python: Select Interpreter` → `.venv` wählen.
 
 ---
 
-### Problem: npm-Fehler beim Frontend
-
-**Symptom:** `npm install` oder `npm run dev` schlägt fehl.
+### API gibt 503 oder Verbindungsfehler zurück
 
 ```bash
-cd frontend
-
-# node_modules löschen und neu installieren:
-rm -rf node_modules package-lock.json
-npm install
-
-# Oder mit Docker (empfohlen):
-docker compose up frontend --build
-```
-
----
-
-### Problem: Datenbank-Verbindungsfehler
-
-**Symptom:** API gibt `connection refused` für PostgreSQL zurück.
-
-```bash
-# Ist die Datenbank überhaupt gestartet?
+# Ist die Datenbank bereit?
 docker compose ps db
-
-# Logs der Datenbank anzeigen:
 docker compose logs db
 
-# Datenbank neu starten:
+# Datenbank neu starten und warten:
 docker compose restart db
-
-# Warte 10 Sekunden und teste erneut:
-sleep 10
-curl http://localhost:8000/health/detailed
+sleep 15
+curl http://localhost:8000/health
 ```
 
 ---
 
-### Problem: Änderungen werden nicht übernommen
-
-**Symptom:** Du änderst Code, aber im Browser ist noch die alte Version.
+### Code-Änderungen werden nicht übernommen
 
 **Backend (FastAPI):**  
-Wenn `--reload` in der Docker-Konfiguration aktiv ist (Standard in `docker-compose.override.yml`), sollte der Server automatisch neu starten. Falls nicht:
+`--reload` startet den Server automatisch neu. Falls nicht:
 ```bash
 docker compose restart api_gateway
 ```
 
-**Frontend (Next.js):**  
-Next.js hat Hot-Reload eingebaut. Falls es nicht funktioniert:
+**Frontend (Next.js 15):**  
+Hot-Reload ist eingebaut. Falls nicht:
 ```bash
 docker compose restart frontend
 ```
 
 ---
 
-### Alle Container neu starten (Nuclear Option)
-
-Wenn gar nichts mehr funktioniert:
+### Nuclear Option – komplett neu starten
 
 ```bash
 # Alles stoppen:
 docker compose down
 
-# Alle Images neu bauen (dauert länger):
+# Neu bauen:
 docker compose up --build
 
-# Oder: Alles löschen und von vorne (ALLE DATEN GEHEN VERLOREN!):
+# Alles löschen und von vorne (ALLE DATEN GEHEN VERLOREN!):
 docker compose down -v --rmi local
 docker compose up --build
 ```
 
 ---
 
-## Schnellreferenz: Die wichtigsten Befehle
+## Schnellreferenz
 
 ```bash
-# Services starten:
+# Services starten (Hintergrund):
 docker compose up -d
 
 # Services stoppen:
@@ -633,9 +626,9 @@ docker compose ps
 # Branch prüfen:
 git branch
 
-# Änderungen committen:
+# Commiten und pushen:
 git add .
-git commit -m "feat(bereich): beschreibung"
+git commit -m "typ(bereich): beschreibung"
 git push origin feature/developer-setup
 
 # Neueste Änderungen holen:
@@ -644,4 +637,5 @@ git pull origin feature/developer-setup
 
 ---
 
-*Letzte Aktualisierung: 2025 · Developer Setup Team · Branch: `feature/developer-setup`*
+*Letzte Aktualisierung: 2026-03-07 · Developer Setup Team · Branch: `feature/developer-setup`*  
+*Repository: loschi1982/ClimateWebsite*

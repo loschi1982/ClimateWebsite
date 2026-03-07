@@ -2,45 +2,48 @@
 # tests/api/manual_tests.http
 #
 # Was ist diese Datei?
-# Diese Datei enthält fertige API-Anfragen zum Testen des Backends.
-# Du kannst sie direkt in VSCode ausführen – ohne Postman oder curl!
+# Fertige API-Anfragen für alle Endpunkte des ClimateInsight-Backends.
+# Direkt ausführbar in VSCode mit der "REST Client"-Erweiterung.
 #
-# Voraussetzung: VSCode-Erweiterung "REST Client" (humao.rest-client)
-# ist installiert. (Steht in .vscode/extensions.json)
+# Voraussetzung: Erweiterung "humao.rest-client" ist installiert.
 #
 # So führst du einen Request aus:
-#   1. Öffne diese Datei in VSCode
-#   2. Über jedem Request erscheint "Send Request" – klick darauf!
-#   3. Die Antwort erscheint in einem neuen Tab rechts
+#   1. Diese Datei in VSCode öffnen
+#   2. Unten rechts: "No Environment" → "local" wählen
+#   3. Über jedem Request erscheint "Send Request" → klick darauf
+#   4. Antwort erscheint im Tab rechts (HTTP-Status + JSON)
 #
-# Umgebung wechseln (lokal / staging):
-#   Klick auf "No Environment" unten rechts in VSCode
-#   Wähle "local" für die lokale Entwicklungsumgebung
+# Alle Endpunkte folgen dem API-Vertrag aus memory/api_contracts.md
+# Base URL: http://localhost:8000/api/v1  (ADR-004: /api/v1/ Versionierung)
 #
 # Team: Developer Setup Team | Branch: feature/developer-setup
 ###############################################################################
 
 # ── VARIABLEN ─────────────────────────────────────────────────────────────────
-# Diese Variablen werden in allen Requests unten verwendet.
-# Du kannst sie auch in den VSCode-Einstellungen überschreiben.
-# (Siehe .vscode/settings.json → rest-client.environmentVariables)
+# Entsprechen den Werten in .vscode/settings.json (rest-client.environmentVariables)
 
-@baseUrl = http://localhost:8000
-@apiBase = {{baseUrl}}/api/v1
+@baseUrl     = http://localhost:8000
+@apiBase     = {{baseUrl}}/api/v1
 @contentType = application/json
+
+# Job-IDs und Ressource-IDs: nach dem ersten Ausführen hier eintragen
+# und dann in den abhängigen Requests (z.B. GET job status) verwenden.
+@jobId        = HIER_JOB_ID_EINTRAGEN
+@analysisId   = HIER_ANALYSE_ID_EINTRAGEN
+@vizId        = HIER_VIZ_ID_EINTRAGEN
+@simulationId = HIER_SIMULATION_ID_EINTRAGEN
+@articleId    = HIER_ARTIKEL_ID_EINTRAGEN
+@entryId      = HIER_ENTRY_ID_EINTRAGEN
 
 
 ###############################################################################
 # HEALTH CHECK
-# ─────────────────────────────────────────────────────────────────────────────
-# Dieser Request prüft ob das Backend überhaupt läuft.
-# Erwartete Antwort: {"status": "ok", "version": "..."}
-# Starte hier – wenn das funktioniert, läuft alles!
+# Starte hier. Wenn diese Requests funktionieren, läuft das Backend.
 ###############################################################################
 
 # ─────────────────────────────
 # HEALTH: Backend-Status prüfen
-# Zeigt ob der Server läuft und welche Version aktiv ist
+# Erwartete Antwort: {"status": "ok", "version": "1.0"}
 # ─────────────────────────────
 GET {{baseUrl}}/health
 Content-Type: {{contentType}}
@@ -48,37 +51,40 @@ Content-Type: {{contentType}}
 ###
 
 # ─────────────────────────────
-# HEALTH: Datenbankverbindung prüfen
-# Prüft ob Backend → Datenbank Verbindung funktioniert
-# Erwartete Antwort: {"database": "ok", "redis": "ok", "minio": "ok"}
+# HEALTH: OpenAPI-Spezifikation abrufen
+# Wird von Swagger UI (http://localhost:8080) genutzt
 # ─────────────────────────────
-GET {{baseUrl}}/health/detailed
-Content-Type: {{contentType}}
-
-###
-
-# ─────────────────────────────
-# API INFO: OpenAPI-Spezifikation abrufen
-# Gibt die maschinenlesbare API-Dokumentation zurück
-# Wird von Swagger UI verwendet (http://localhost:8080)
-# ─────────────────────────────
-GET {{apiBase}}/openapi.json
+GET {{baseUrl}}/openapi.json
 Content-Type: {{contentType}}
 
 ###
 
 
 ###############################################################################
-# MODUL: INGESTION (Datenabruf)
-# ─────────────────────────────────────────────────────────────────────────────
-# Diese Endpoints steuern das Laden von Klimadaten aus externen Quellen
-# (NASA, NOAA, Copernicus, IPCC, NSIDC).
+# MODUL 1: DATA INGESTION
+# Owner: Data Pipeline Team | Branch: feature/data-pipeline
+# Endpunkte: POST /ingestion/trigger · GET /ingestion/jobs/{job_id}
+#            GET /ingestion/datasets · GET /ingestion/datasets/{id}/data
+#            GET /ingestion/sources
+# Quelle: memory/api_contracts.md → "Modul 1: Data Ingestion API"
 ###############################################################################
 
 # ─────────────────────────────
-# INGESTION: Alle verfügbaren Datensätze auflisten
-# Zeigt welche Klimadatensätze im System bekannt sind
-# Erwartete Antwort: Liste von Datensatz-Objekten mit id, name, source
+# INGESTION: Konfigurierte Datenquellen auflisten
+# Zeigt alle Quellen (NASA GISS, NOAA, Copernicus, IPCC, NSIDC)
+# mit aktuellem Status (active/inactive/error)
+# Erwartetes Format aus api_contracts.md:
+#   {"sources": [{"id": "nasa_giss_surface_temp", "provider": "NASA", ...}]}
+# ─────────────────────────────
+GET {{apiBase}}/ingestion/sources
+Content-Type: {{contentType}}
+
+###
+
+# ─────────────────────────────
+# INGESTION: Verfügbare Datensätze auflisten
+# Zeigt alle normalisierten Datensätze in TimescaleDB
+# Optional filtern: ?variable=surface_temperature_anomaly&provider=NASA
 # ─────────────────────────────
 GET {{apiBase}}/ingestion/datasets
 Content-Type: {{contentType}}
@@ -86,28 +92,36 @@ Content-Type: {{contentType}}
 ###
 
 # ─────────────────────────────
-# INGESTION: Details zu einem Datensatz abrufen
-# Zeigt Metadaten für den NASA GISS Temperaturdatensatz
-# Erwartete Antwort: Datensatz-Details mit Zeitraum, Einheit, Quelle
+# INGESTION: Datensatz nach Variable filtern
+# ClimateVariable-Werte (aus api_contracts.md):
+#   surface_temperature_anomaly | sea_level_change | sea_ice_extent
+#   co2_concentration | arctic_ice_volume | precipitation_anomaly
+#   ocean_heat_content
 # ─────────────────────────────
-GET {{apiBase}}/ingestion/datasets/nasa_giss_surface_temp_v4
+GET {{apiBase}}/ingestion/datasets?variable=surface_temperature_anomaly&provider=NASA
 Content-Type: {{contentType}}
 
 ###
 
 # ─────────────────────────────
-# INGESTION: Datenabruf für einen Datensatz auslösen
-# Startet einen asynchronen Job der NASA-Daten herunterlädt
-# Erwartete Antwort: {"job_id": "...", "status": "queued"}
+# INGESTION: Datenabruf für NASA GISS starten
+# Startet einen asynchronen Job der GISTEMP v4-Temperaturdaten lädt.
+# DOI: 10.7289/V5MGNM48 | Zeitraum: 1880 bis heute
+# Connector implementiert in: modules/data_ingestion/src/connectors/nasa_giss.py
+#
+# Erwartete Antwort (202 Accepted):
+#   {"data": {"job_id": "job_abc123", "status": "queued", "estimated_completion_seconds": 120}}
+#
+# → Trage job_id oben bei @jobId ein!
 # ─────────────────────────────
 POST {{apiBase}}/ingestion/trigger
 Content-Type: {{contentType}}
 
 {
-  "dataset_id": "nasa_giss_surface_temp_v4",
-  "time_range": {
-    "start": "2020-01-01",
-    "end": "2024-12-31"
+  "source_id": "nasa_giss_surface_temp",
+  "date_range": {
+    "start": "2000-01-01",
+    "end": "2025-12-31"
   },
   "force_refresh": false
 }
@@ -115,47 +129,46 @@ Content-Type: {{contentType}}
 ###
 
 # ─────────────────────────────
-# INGESTION: Status eines laufenden Jobs prüfen
-# Ersetze "JOB_ID_HIER" mit der job_id aus dem vorherigen Request
-# Erwartete Antwort: {"status": "running"/"completed"/"failed", "progress": 0-100}
+# INGESTION: Job-Status abfragen
+# Prüft ob der Datenabruf noch läuft, abgeschlossen ist oder fehlgeschlagen.
+# JobStatus-Werte: queued | running | completed | failed
+# Enthält quality_report: missing_values, out_of_range_values, duplicate_records
 # ─────────────────────────────
-GET {{apiBase}}/ingestion/jobs/JOB_ID_HIER
+GET {{apiBase}}/ingestion/jobs/{{jobId}}
 Content-Type: {{contentType}}
 
 ###
 
 # ─────────────────────────────
-# INGESTION: Alle laufenden Jobs anzeigen
-# Zeigt den Status aller Datenabruf-Jobs
+# INGESTION: Rohdaten eines Datensatzes abrufen
+# Liefert die tatsächlichen Datenpunkte (timestamp, value, unit, quality_flag)
+# DataPoint: {"timestamp": "1880-01-01T00:00:00Z", "value": -0.16, "unit": "°C", "quality_flag": "good"}
+# Paginierung: limit (max 10000) und offset
 # ─────────────────────────────
-GET {{apiBase}}/ingestion/jobs
+GET {{apiBase}}/ingestion/datasets/nasa_giss_surface_temp_v4/data?from=1960-01-01&to=2025-12-31&limit=100&offset=0
 Content-Type: {{contentType}}
 
 ###
 
 
 ###############################################################################
-# MODUL: ANALYSIS (Klimaanalyse)
-# ─────────────────────────────────────────────────────────────────────────────
-# Diese Endpoints führen statistische Analysen durch:
-# Trendberechnungen, Anomalie-Erkennung, Korrelationen.
+# MODUL 2: CLIMATE ANALYSIS
+# Owner: Climate Analysis Team | Branch: feature/climate-analysis
+# Endpunkte: POST /analysis/run · GET /analysis/{analysis_id}
+#            GET /analysis/hypotheses · POST /analysis/correlate
+# Quelle: memory/api_contracts.md → "Modul 2: Climate Analysis API"
 ###############################################################################
 
 # ─────────────────────────────
-# ANALYSIS: Verfügbare Analysemethoden anzeigen
-# Zeigt welche Analysen das System unterstützt
-# Erwartete Antwort: Liste mit trend, anomaly, correlation, moving_average...
-# ─────────────────────────────
-GET {{apiBase}}/analysis/methods
-Content-Type: {{contentType}}
-
-###
-
-# ─────────────────────────────
-# ANALYSIS: Trendanalyse starten
-# Berechnet den linearen Temperaturtrend seit 1960
-# Methode: OLS (Ordinary Least Squares) – Standard in der Klimaforschung
-# Erwartete Antwort: {"slope": 0.019, "unit": "°C/Jahr", "r_squared": 0.87, ...}
+# ANALYSIS: Lineare Trendanalyse starten (P1-CA-01)
+# Berechnet OLS-Regression mit Konfidenzintervall und p-Wert.
+# analysis_type-Werte: trend | anomaly | correlation | decompose | forecast
+# Methoden: linear | polynomial | loess
+#
+# Erwartete Antwort (202 Accepted):
+#   {"data": {"analysis_id": "ana_xyz789", "status": "queued", "estimated_seconds": 15}}
+#
+# → Trage analysis_id oben bei @analysisId ein!
 # ─────────────────────────────
 POST {{apiBase}}/analysis/run
 Content-Type: {{contentType}}
@@ -164,21 +177,33 @@ Content-Type: {{contentType}}
   "dataset_id": "nasa_giss_surface_temp_v4",
   "analysis_type": "trend",
   "parameters": {
+    "method": "linear",
+    "confidence_level": 0.95,
     "time_range": {
       "start": "1960-01-01",
       "end": "2025-01-01"
-    },
-    "method": "ols",
-    "confidence_interval": 0.95
+    }
   }
 }
 
 ###
 
 # ─────────────────────────────
-# ANALYSIS: Anomalie-Erkennung
-# Findet Jahre mit außergewöhnlich hohen/niedrigen Temperaturen
-# Erwartete Antwort: Liste der Ausreißer-Datenpunkte
+# ANALYSIS: Analyseergebnis abrufen
+# Enthält bei type=trend:
+#   trend_slope, trend_slope_unit, p_value, r_squared,
+#   confidence_interval_95, interpretation, trend_series
+# Enthält außerdem: hypotheses (automatisch generiert), methodology
+# Referenzwert: IPCC AR6 Temperaturtrend (Tests: ±5% Toleranz, P1-CA-03)
+# ─────────────────────────────
+GET {{apiBase}}/analysis/{{analysisId}}
+Content-Type: {{contentType}}
+
+###
+
+# ─────────────────────────────
+# ANALYSIS: Anomalie-Erkennung starten
+# Erkennt Ausreißer in der Zeitreihe (Z-Score + IQR, Phase 2: P2-CA-01)
 # ─────────────────────────────
 POST {{apiBase}}/analysis/run
 Content-Type: {{contentType}}
@@ -190,47 +215,131 @@ Content-Type: {{contentType}}
     "time_range": {
       "start": "1950-01-01",
       "end": "2025-01-01"
-    },
-    "baseline_period": {
-      "start": "1951-01-01",
-      "end": "1980-12-31"
-    },
-    "threshold_sigma": 2.0
+    }
   }
 }
 
 ###
 
 # ─────────────────────────────
-# ANALYSIS: Gespeicherte Analyseergebnisse abrufen
-# Zeigt alle bereits berechneten Analysen
+# ANALYSIS: Alle Hypothesen auflisten
+# Zeigt automatisch generierte Hypothesen aus Analysen.
+# Filter: topic, min_confidence (0.0–1.0), dataset_id
+# Beispiel-Hypothese: "Die globale Temperatur zeigt seit 1960 einen
+#   statistisch signifikanten positiven Trend."
 # ─────────────────────────────
-GET {{apiBase}}/analysis/results
+GET {{apiBase}}/analysis/hypotheses?min_confidence=0.9&topic=temperature
 Content-Type: {{contentType}}
 
 ###
 
 # ─────────────────────────────
-# ANALYSIS: Ein spezifisches Ergebnis abrufen
-# Ersetze "RESULT_ID_HIER" mit einer ID aus der Liste oben
+# ANALYSIS: Kreuzkorrelation zweier Datensätze starten
+# Berechnet Pearson-r und Spearman-r zwischen Temperatur und CO₂.
+# Liefert Korrelation bei verschiedenen Zeitversätzen (max_lag_months).
 # ─────────────────────────────
-GET {{apiBase}}/analysis/results/RESULT_ID_HIER
+POST {{apiBase}}/analysis/correlate
+Content-Type: {{contentType}}
+
+{
+  "dataset_a": "nasa_giss_surface_temp_v4",
+  "dataset_b": "noaa_co2_mauna_loa_v1",
+  "time_range": {
+    "start": "1960-01-01",
+    "end": "2025-01-01"
+  },
+  "max_lag_months": 24
+}
+
+###
+
+
+###############################################################################
+# MODUL 3: VISUALIZATION ENGINE
+# Owner: Visualization Team | Branch: feature/visualization
+# Endpunkte: POST /viz/create · GET /viz/{viz_id}
+#            GET /viz/{viz_id}/export · GET /viz/templates
+# Quelle: memory/api_contracts.md → "Modul 3: Visualization API"
+###############################################################################
+
+# ─────────────────────────────
+# VISUALIZATION: Vorlagen auflisten
+# Zeigt vordefinierte Visualisierungsvorlagen (P1-VZ-04: Vega-Lite Specs)
+# ─────────────────────────────
+GET {{apiBase}}/viz/templates
+Content-Type: {{contentType}}
+
+###
+
+# ─────────────────────────────
+# VISUALIZATION: Zeitreihen-Diagramm erstellen
+# viz_type-Werte: timeseries | map | scatter | correlation | bar
+# color_scheme-Werte: diverging_rdbu | sequential_blue | sequential_orange
+#   (definiert in: frontend/src/lib/viz/color_schemes.ts, P1-VZ-02)
+# show_source: true → Quellenangabe im Diagramm (Pflicht laut Architektur!)
+#
+# Erwartete Antwort (201 Created):
+#   {"data": {"viz_id": "viz_def456", "spec_format": "vega-lite", "spec": {...}}}
+#
+# → Trage viz_id oben bei @vizId ein!
+# ─────────────────────────────
+POST {{apiBase}}/viz/create
+Content-Type: {{contentType}}
+
+{
+  "viz_type": "timeseries",
+  "dataset_ids": ["nasa_giss_surface_temp_v4"],
+  "analysis_id": "{{analysisId}}",
+  "config": {
+    "x_axis": "time",
+    "y_axis": "surface_temperature_anomaly",
+    "time_range": {
+      "start": "1880-01-01",
+      "end": "2025-12-31"
+    },
+    "show_trend": true,
+    "show_confidence_band": true,
+    "color_scheme": "diverging_rdbu",
+    "title": "Globale Temperaturanomalie 1880–2025",
+    "show_source": true
+  }
+}
+
+###
+
+# ─────────────────────────────
+# VISUALIZATION: Diagramm abrufen
+# Gibt Vega-Lite-Spec und Export-URLs zurück
+# ─────────────────────────────
+GET {{apiBase}}/viz/{{vizId}}
+Content-Type: {{contentType}}
+
+###
+
+# ─────────────────────────────
+# VISUALIZATION: Diagramm exportieren
+# format-Werte: svg | png | csv
+# PNG/SVG: width (default 1200) und height (default 600) konfigurierbar
+# ─────────────────────────────
+GET {{apiBase}}/viz/{{vizId}}/export?format=svg&width=1200&height=600
 Content-Type: {{contentType}}
 
 ###
 
 
 ###############################################################################
-# MODUL: SIMULATION (Klimaszenarien)
-# ─────────────────────────────────────────────────────────────────────────────
-# Diese Endpoints berechnen Klimaszenarien basierend auf
-# IPCC-Emissionspfaden (SSP1, SSP2, SSP3, SSP5).
+# MODUL 4: SIMULATION ENGINE
+# Owner: Simulation Team | Branch: feature/simulation
+# Endpunkte: GET /simulation/scenarios · POST /simulation/run
+#            GET /simulation/{simulation_id} · GET /simulation/parameters
+# Quelle: memory/api_contracts.md → "Modul 4: Simulation API"
+# Hinweis: ADR-005 (server- vs. client-seitig) ist noch offen (oq_001)
 ###############################################################################
 
 # ─────────────────────────────
-# SIMULATION: Verfügbare Szenarien anzeigen
-# Zeigt alle IPCC-Emissionspfade die simuliert werden können
-# Erwartete Antwort: Liste mit ssp1_2_6, ssp2_4_5, ssp3_7_0, ssp5_8_5
+# SIMULATION: Vordefinierte Szenarien auflisten
+# Didaktische IPCC-Szenarien (RCP 2.6 / 4.5 / 8.5)
+# Daten in: data/scenarios/rcp_*.yaml (P1-SM-02)
 # ─────────────────────────────
 GET {{apiBase}}/simulation/scenarios
 Content-Type: {{contentType}}
@@ -238,203 +347,248 @@ Content-Type: {{contentType}}
 ###
 
 # ─────────────────────────────
-# SIMULATION: Temperaturszenario berechnen
-# Berechnet die Temperaturentwicklung bis 2100 für SSP2-4.5
-# (mittleres Emissionsszenario – "weiter wie bisher")
-# WICHTIG: Vereinfachtes Modell, keine echte Klimamodell-Simulation!
-# Erwartete Antwort: Zeitreihe mit Jahreswerten und Konfidenzintervallen
+# SIMULATION: Verfügbare Parameter auflisten
+# Parameter für eigene Szenarien (Schieberegler im Frontend)
+# z.B.: co2_annual_reduction_percent (0–15 %/Jahr)
+#        co2_reduction_start_year (2026–2050)
+# ─────────────────────────────
+GET {{apiBase}}/simulation/parameters
+Content-Type: {{contentType}}
+
+###
+
+# ─────────────────────────────
+# SIMULATION: RCP 4.5 Szenario starten (mittlere Emissionen)
+# Liefert projection_series mit value_median, value_lower_95, value_upper_95
+# WICHTIG: simplification_notes werden immer mitgeliefert
+# (Vereinfachung kennzeichnen – Projektstandard)
+#
+# Erwartete Antwort (202 Accepted):
+#   {"data": {"simulation_id": "sim_mno789", "status": "running"}}
+#
+# → Trage simulation_id oben bei @simulationId ein!
 # ─────────────────────────────
 POST {{apiBase}}/simulation/run
 Content-Type: {{contentType}}
 
 {
-  "scenario": "ssp2_4_5",
-  "target_variable": "global_mean_temperature",
-  "time_range": {
-    "start": "2025-01-01",
-    "end": "2100-12-31"
+  "scenario_id": "rcp_4_5",
+  "custom_parameters": {
+    "co2_reduction_start_year": 2030,
+    "co2_annual_reduction_percent": 3.0
   },
-  "parameters": {
-    "climate_sensitivity": 3.0,
-    "include_uncertainty": true
-  }
+  "base_dataset_id": "nasa_giss_surface_temp_v4",
+  "time_horizon_years": 75,
+  "variable": "surface_temperature_anomaly"
 }
 
 ###
 
 # ─────────────────────────────
-# SIMULATION: Alle Szenarien vergleichen
-# Berechnet und vergleicht alle 4 IPCC-Szenarien bis 2100
-# Nützlich für Visualisierungen die mehrere Pfade zeigen
+# SIMULATION: Ergebnis abrufen
+# Enthält: projection_series, key_milestones, simplification_notes
 # ─────────────────────────────
-POST {{apiBase}}/simulation/compare
+GET {{apiBase}}/simulation/{{simulationId}}
+Content-Type: {{contentType}}
+
+###
+
+
+###############################################################################
+# MODUL 5: KNOWLEDGE BASE
+# Owner: Data Pipeline Team | Branch: feature/data-pipeline
+# Endpunkte: POST /knowledge/entries · GET /knowledge/search
+#            GET /knowledge/entries/{entry_id}
+# Quelle: memory/api_contracts.md → "Modul 5: Knowledge Base API"
+# Hinweis: Phase 1 nutzt Keyword-Suche (ADR-007)
+#          Phase 2: LlamaIndex RAG-Pipeline (P2-AI-01)
+###############################################################################
+
+# ─────────────────────────────
+# KNOWLEDGE: Wissensbasis durchsuchen (Keyword-Suche in Phase 1)
+# Semantische Suche folgt in Phase 2 mit LlamaIndex (ADR-007)
+# ─────────────────────────────
+GET {{apiBase}}/knowledge/search?q=Temperaturanomalie&topic=temperature&limit=10
+Content-Type: {{contentType}}
+
+###
+
+# ─────────────────────────────
+# KNOWLEDGE: Eintrag erstellen
+# Seed-Daten für den Start liegen in: data/knowledge_seeds/ (P1-AI-01)
+# Pflicht: vollständige Quellenangabe mit DOI (Projektstandard)
+#
+# Erwartete Antwort (201 Created):
+#   {"data": {"entry_id": "ke_001", "created_at": "..."}}
+#
+# → Trage entry_id oben bei @entryId ein!
+# ─────────────────────────────
+POST {{apiBase}}/knowledge/entries
 Content-Type: {{contentType}}
 
 {
-  "scenarios": ["ssp1_2_6", "ssp2_4_5", "ssp3_7_0", "ssp5_8_5"],
-  "target_variable": "global_mean_temperature",
-  "time_range": {
-    "start": "2025-01-01",
-    "end": "2100-12-31"
-  }
+  "title": "Globale Erwärmung seit 1880",
+  "content": "Die globale Mitteltemperatur ist seit 1880 um approximately 1.2°C gestiegen. Der Trend hat sich seit 1960 deutlich beschleunigt.",
+  "topic": "temperature",
+  "supporting_analyses": [],
+  "supporting_datasets": ["nasa_giss_surface_temp_v4"],
+  "sources": [
+    {
+      "source_id": "nasa_giss_surface_temp_v4",
+      "provider": "NASA",
+      "citation": "GISTEMP Team (2024): GISS Surface Temperature Analysis (GISTEMP v4). NASA Goddard Institute for Space Studies.",
+      "doi": "10.7289/V5MGNM48",
+      "url": "https://data.giss.nasa.gov/gistemp/",
+      "accessed_at": "2026-03-07T00:00:00Z"
+    }
+  ],
+  "tags": ["temperature", "global_warming", "trend"]
 }
 
 ###
 
+# ─────────────────────────────
+# KNOWLEDGE: Einzelnen Eintrag abrufen
+# ─────────────────────────────
+GET {{apiBase}}/knowledge/entries/{{entryId}}
+Content-Type: {{contentType}}
+
+###
+
 
 ###############################################################################
-# MODUL: ARTICLES (KI-generierte Erklärungsartikel)
-# ─────────────────────────────────────────────────────────────────────────────
-# Diese Endpoints verwalten die wissenschaftlichen Erklärungsartikel.
-# WICHTIG: Jeder Artikel muss von einem Menschen geprüft werden bevor
-# er veröffentlicht wird (status: "pending_review" → "published")
+# MODUL 6: AI EXPLANATION (Artikelgenerierung)
+# Owner: AI Explanation Team | Branch: feature/ai-explanation
+# Endpunkte: POST /explain/generate · GET /explain/articles/{article_id}
+#            POST /explain/articles/{article_id}/review · GET /explain/articles
+# Quelle: memory/api_contracts.md → "Modul 6: AI Explanation API"
+#
+# KRITISCHE REGEL (ADR-003, non_negotiable: true):
+# Jeder Artikel hat IMMER status: pending_review.
+# Veröffentlichung NUR durch menschliche Freigabe!
 ###############################################################################
 
 # ─────────────────────────────
-# ARTICLES: Alle veröffentlichten Artikel abrufen
-# Zeigt alle Artikel mit Status "published"
-# Erwartete Antwort: Liste von Artikeln mit title, summary, tags
+# EXPLAIN: Alle Artikel auflisten
+# ArticleStatus-Werte: pending_review | in_review | approved | published | rejected
 # ─────────────────────────────
-GET {{apiBase}}/articles
+GET {{apiBase}}/explain/articles?status=pending_review&language=de&limit=20&offset=0
 Content-Type: {{contentType}}
 
 ###
 
 # ─────────────────────────────
-# ARTICLES: Artikel nach Tag filtern
-# Zeigt nur Artikel mit dem Tag "temperature"
+# EXPLAIN: Artikelentwurf generieren (Claude API + RAG)
+# audience-Werte: general | expert
+# language-Werte: de | en
+#
+# Antwort hat IMMER status: "pending_review" (ADR-003)
+# → Trage article_id oben bei @articleId ein!
 # ─────────────────────────────
-GET {{apiBase}}/articles?tag=temperature&status=published
-Content-Type: {{contentType}}
-
-###
-
-# ─────────────────────────────
-# ARTICLES: Artikel-Generierung auslösen
-# Startet die KI-Generierung eines neuen Erklärungsartikels
-# Ergebnis hat IMMER status="pending_review" – niemals direkt published!
-# Ein Mensch muss den Artikel prüfen bevor er sichtbar wird.
-# ─────────────────────────────
-POST {{apiBase}}/articles/generate
+POST {{apiBase}}/explain/generate
 Content-Type: {{contentType}}
 
 {
-  "analysis_result_id": "RESULT_ID_HIER",
-  "target_audience": "general_public",
+  "topic": "Globale Temperaturentwicklung seit 1880",
+  "knowledge_entry_ids": ["{{entryId}}"],
+  "analysis_ids": ["{{analysisId}}"],
+  "audience": "general",
   "language": "de",
-  "max_length": 800,
-  "include_sources": true
+  "target_word_count": 800
 }
 
 ###
 
 # ─────────────────────────────
-# ARTICLES: Artikel zur Prüfung abrufen
-# Zeigt alle Artikel die auf menschliche Überprüfung warten
-# (Nur für Redakteure – in Produktion Auth-geschützt)
+# EXPLAIN: Artikelentwurf abrufen
+# Enthält: title, content, summary, key_findings, sources,
+#          word_count, audience, language, generated_at
+# reviewed_by und published_at sind null bis zur Freigabe
 # ─────────────────────────────
-GET {{apiBase}}/articles?status=pending_review
+GET {{apiBase}}/explain/articles/{{articleId}}
 Content-Type: {{contentType}}
 
 ###
 
 # ─────────────────────────────
-# ARTICLES: Artikel nach Prüfung veröffentlichen
-# Ersetze ARTICLE_ID_HIER mit der ID des geprüften Artikels
-# Ändert Status von "pending_review" auf "published"
+# EXPLAIN: Review-Entscheidung einreichen (geschützt: BearerAuth)
+# decision-Werte: approved | rejected | revision_required
+# Nur autorisierte Reviewer dürfen diesen Endpunkt aufrufen.
 # ─────────────────────────────
-PATCH {{apiBase}}/articles/ARTICLE_ID_HIER/status
+POST {{apiBase}}/explain/articles/{{articleId}}/review
 Content-Type: {{contentType}}
 
 {
-  "status": "published",
-  "reviewer_notes": "Geprüft und freigegeben."
+  "decision": "approved",
+  "notes": "Wissenschaftlich korrekt, Quellenangaben vollständig, Sprache verständlich.",
+  "reviewer_id": "reviewer_01"
 }
 
 ###
 
 
 ###############################################################################
-# MODUL: VISUALIZATIONS (Diagramme und Karten)
-# ─────────────────────────────────────────────────────────────────────────────
-# Diese Endpoints erstellen Visualisierungs-Konfigurationen.
-# Die eigentlichen Diagramme werden vom Frontend gerendert.
+# EXPLORATION API
+# Owner: Frontend Team | Branch: feature/frontend
+# Endpunkte: POST /explore/compare · POST /explore/share
+#            GET /explore/share/{token}
+# Quelle: memory/api_contracts.md → "Exploration API"
 ###############################################################################
 
 # ─────────────────────────────
-# VISUALIZATION: Verfügbare Chart-Typen anzeigen
-# Zeigt welche Diagrammtypen unterstützt werden
-# Erwartete Antwort: line_chart, area_chart, heat_map, globe, bar_chart...
+# EXPLORE: Mehrere Klimavariablen vergleichen
+# Vergleicht bis zu 5 Datensätze gleichzeitig.
+# normalize: true → Werte auf einheitliche Skala bringen (für Vergleiche)
+# Liefert auto_correlation (Pearson-r) wenn 2 Datensätze gewählt
 # ─────────────────────────────
-GET {{apiBase}}/visualization/types
-Content-Type: {{contentType}}
-
-###
-
-# ─────────────────────────────
-# VISUALIZATION: Chart-Konfiguration erstellen
-# Erstellt eine Konfiguration für ein Temperatur-Liniendiagramm
-# Das Frontend nutzt diese Konfiguration zum Rendern des Diagramms
-# ─────────────────────────────
-POST {{apiBase}}/visualization/create
+POST {{apiBase}}/explore/compare
 Content-Type: {{contentType}}
 
 {
-  "chart_type": "line_chart",
-  "dataset_id": "nasa_giss_surface_temp_v4",
-  "title": "Globale Temperaturanomalie seit 1880",
-  "x_axis": {
-    "field": "timestamp",
-    "label": "Jahr"
-  },
-  "y_axis": {
-    "field": "value",
-    "label": "Temperaturanomalie (°C)",
-    "unit": "°C"
-  },
+  "dataset_ids": [
+    "nasa_giss_surface_temp_v4",
+    "noaa_co2_mauna_loa_v1"
+  ],
   "time_range": {
-    "start": "1880-01-01",
-    "end": "2025-01-01"
+    "start": "1960-01-01",
+    "end": "2025-12-31"
   },
-  "style": {
-    "color_scheme": "climate_blue_red",
-    "show_trend_line": true
+  "normalize": true
+}
+
+###
+
+# ─────────────────────────────
+# EXPLORE: Explorations-Zustand speichern und teilen
+# Speichert die aktuelle Ansicht und gibt einen Sharing-Link zurück.
+# Der Link enthält alle Einstellungen (Datensätze, Zeitraum, Ansicht).
+# URL-Format: https://climateinsight.org/explore?share=shr_abc123
+#
+# Wichtig für P1-FE-04: URL-State für Sharing
+# ─────────────────────────────
+POST {{apiBase}}/explore/share
+Content-Type: {{contentType}}
+
+{
+  "state": {
+    "dataset_ids": ["nasa_giss_surface_temp_v4"],
+    "time_range": {
+      "start": "1960-01-01",
+      "end": "2025-12-31"
+    },
+    "view_mode": "timeseries",
+    "show_trend": true
   }
 }
 
 ###
 
-
-###############################################################################
-# MODUL: GLOSSARY (Klimabegriffe)
-# ─────────────────────────────────────────────────────────────────────────────
-# Diese Endpoints verwalten das Klimaglossар mit wissenschaftlichen
-# Begriffsdefinitionen.
-###############################################################################
-
 # ─────────────────────────────
-# GLOSSARY: Alle Einträge abrufen
-# Zeigt alle Klimabegriffe im Glossar
+# EXPLORE: Geteilten Zustand laden
+# Lädt einen gespeicherten Explorations-Zustand anhand des Share-Tokens.
+# Ersetze "shr_abc123" mit dem Token aus dem vorherigen Request.
 # ─────────────────────────────
-GET {{apiBase}}/glossary
-Content-Type: {{contentType}}
-
-###
-
-# ─────────────────────────────
-# GLOSSARY: Begriff suchen
-# Sucht nach dem Begriff "Treibhauseffekt"
-# ─────────────────────────────
-GET {{apiBase}}/glossary?search=Treibhauseffekt
-Content-Type: {{contentType}}
-
-###
-
-# ─────────────────────────────
-# GLOSSARY: Einen Begriff abrufen
-# Ersetze "albedo" mit dem gewünschten Begriff (kleingeschrieben)
-# ─────────────────────────────
-GET {{apiBase}}/glossary/albedo
+GET {{apiBase}}/explore/share/shr_abc123
 Content-Type: {{contentType}}
 
 ###
