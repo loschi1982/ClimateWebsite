@@ -1,0 +1,224 @@
+{
+  // ─────────────────────────────────────────────────────────
+  // .vscode/launch.json
+  //
+  // Was ist diese Datei?
+  // Diese Datei definiert "Debug-Konfigurationen" für VSCode.
+  // Der Debugger erlaubt dir, deinen Code Zeile für Zeile
+  // auszuführen und genau zu sehen WAS in jeder Variable steht.
+  //
+  // So startest du den Debugger:
+  // 1. Öffne die gewünschte Datei im Editor
+  // 2. Klicke auf das "Run and Debug"-Symbol in der linken Leiste
+  //    (das dreieckige Play-Symbol mit einem Käfer)
+  // 3. Wähle eine Konfiguration aus dem Dropdown-Menü
+  // 4. Klicke auf den grünen Play-Button (oder drücke F5)
+  //
+  // Breakpoints setzen:
+  // Klicke links neben die Zeilennummer – ein roter Punkt erscheint.
+  // Das Programm hält dort an und du kannst alle Variablen sehen.
+  //
+  // Team: Developer Setup Team | Branch: feature/developer-setup
+  // ─────────────────────────────────────────────────────────
+  "version": "0.2.0",
+  "configurations": [
+
+    // ── FASTAPI BACKEND ────────────────────────────────────
+    {
+      // Name der Konfiguration – erscheint im Dropdown-Menü
+      "name": "🐍 FastAPI Backend debuggen",
+
+      // "module" bedeutet: starte ein Python-Modul (wie python -m uvicorn)
+      "type": "python",
+      "request": "launch",
+
+      // uvicorn ist der Webserver der FastAPI ausführt.
+      // Wir starten ihn als Python-Modul.
+      "module": "uvicorn",
+
+      // Was bedeuten diese Argumente?
+      // "api.main:app"   → In der Datei api/main.py gibt es eine Variable
+      //                    namens "app" – das ist unsere FastAPI-Anwendung
+      // "--reload"       → Wenn du Code änderst, startet der Server
+      //                    automatisch neu (kein manuelles Neustart nötig!)
+      // "--host 0.0.0.0" → Der Server ist von allen Adressen erreichbar
+      //                    (wichtig wenn Docker verwendet wird)
+      // "--port 8000"    → Der Server läuft auf Port 8000
+      "args": [
+        "api.main:app",
+        "--reload",
+        "--host", "0.0.0.0",
+        "--port", "8000"
+      ],
+
+      // Wo liegt der Code? Im Hauptordner des Projekts.
+      "cwd": "${workspaceFolder}",
+
+      // Umgebungsvariablen aus der .env-Datei laden
+      "envFile": "${workspaceFolder}/.env",
+
+      // Auch Breakpoints in installierten Bibliotheken erlauben
+      // (nützlich wenn du verstehen willst wie FastAPI intern arbeitet)
+      "justMyCode": false,
+
+      // Hilfreiche Erklärung für den Nutzer
+      "presentation": {
+        "group": "Backend",
+        "order": 1
+      }
+    },
+
+    // ── PYTEST (UNIT TESTS) ────────────────────────────────
+    {
+      "name": "🧪 Pytest Tests debuggen",
+      "type": "python",
+      "request": "launch",
+
+      // pytest als Python-Modul starten
+      "module": "pytest",
+
+      // Was bedeuten diese Argumente?
+      // "-v"         → verbose: zeigt den Namen jedes Tests einzeln an
+      // "-s"         → stoppt das "Schlucken" von print()-Ausgaben
+      //                (nützlich zum Debuggen)
+      // "--no-header" → kompaktere Ausgabe
+      "args": [
+        "-v",
+        "-s",
+        "--no-header"
+      ],
+
+      "cwd": "${workspaceFolder}",
+      "envFile": "${workspaceFolder}/.env",
+
+      // NUR meinen Code debuggen (nicht Bibliotheken)
+      "justMyCode": true,
+
+      "presentation": {
+        "group": "Backend",
+        "order": 2
+      }
+    },
+
+    // ── EINE EINZELNE TEST-DATEI DEBUGGEN ──────────────────
+    {
+      "name": "🧪 Aktuelle Test-Datei debuggen",
+      "type": "python",
+      "request": "launch",
+      "module": "pytest",
+
+      // ${file} = die Datei die gerade in VSCode geöffnet ist.
+      // So kannst du gezielt eine Test-Datei ausführen ohne
+      // alle Tests laufen zu lassen.
+      "args": [
+        "${file}",
+        "-v",
+        "-s"
+      ],
+
+      "cwd": "${workspaceFolder}",
+      "envFile": "${workspaceFolder}/.env",
+      "justMyCode": true,
+
+      "presentation": {
+        "group": "Backend",
+        "order": 3
+      }
+    },
+
+    // ── NEXT.JS FRONTEND ───────────────────────────────────
+    {
+      "name": "🌐 Next.js Frontend debuggen",
+
+      // "node" = JavaScript/TypeScript Debugger
+      "type": "node",
+      "request": "launch",
+
+      // Starte Next.js im Entwicklungsmodus
+      // Das ist gleichwertig zu: npm run dev
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+
+      // Wo liegt der Frontend-Code?
+      "cwd": "${workspaceFolder}/frontend",
+
+      // Port auf dem Next.js läuft
+      "port": 3000,
+
+      // Source Maps: ermöglichen Debugging im TypeScript-Code
+      // (statt im kompilierten JavaScript)
+      "sourceMaps": true,
+
+      "presentation": {
+        "group": "Frontend",
+        "order": 1
+      }
+    },
+
+    // ── NEXT.JS IM BROWSER DEBUGGEN ────────────────────────
+    {
+      "name": "🌐 Next.js in Chrome debuggen",
+
+      // Öffnet Chrome mit aktiviertem Debugger
+      "type": "chrome",
+      "request": "launch",
+
+      // Die Adresse deiner lokalen Next.js-Anwendung
+      "url": "http://localhost:3000",
+
+      // Wo liegt der Quellcode? (für Source Maps)
+      "webRoot": "${workspaceFolder}/frontend",
+      "sourceMaps": true,
+
+      // Tipp: Starte zuerst den Next.js Server (oben),
+      // dann erst diese Konfiguration!
+      "presentation": {
+        "group": "Frontend",
+        "order": 2
+      }
+    },
+
+    // ── ALLES ZUSAMMEN (COMPOUND) ──────────────────────────
+    {
+      "name": "🚀 Backend + Frontend zusammen starten",
+
+      // "compounds" starten mehrere Konfigurationen gleichzeitig.
+      // Diese Konfiguration startet Backend UND Frontend auf einmal.
+      "type": "node",
+      "request": "launch",
+
+      // Tatsächlich wird das durch die compounds-Sektion unten gesteuert.
+      // Diese Konfiguration dient als Platzhalter.
+      "runtimeExecutable": "echo",
+      "runtimeArgs": ["Starte Backend und Frontend..."],
+      "cwd": "${workspaceFolder}",
+
+      "presentation": {
+        "group": "Alle",
+        "order": 1
+      }
+    }
+  ],
+
+  // Compound-Konfigurationen starten mehrere Debugger gleichzeitig
+  "compounds": [
+    {
+      // Dieser Eintrag erscheint auch im Dropdown-Menü
+      "name": "🚀 Backend + Frontend zusammen starten",
+
+      // Diese beiden Konfigurationen werden gleichzeitig gestartet
+      "configurations": [
+        "🐍 FastAPI Backend debuggen",
+        "🌐 Next.js Frontend debuggen"
+      ],
+
+      // stopAll: wenn du einen Debugger stoppst, werden beide gestoppt
+      "stopAll": true,
+
+      "presentation": {
+        "group": "Alle",
+        "order": 1
+      }
+    }
+  ]
+}
