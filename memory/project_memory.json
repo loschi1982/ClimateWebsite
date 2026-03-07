@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "project": "ClimateInsight",
-  "last_updated": "2026-03-05T10:00:00Z",
+  "last_updated": "2026-03-07T00:00:00Z",
 
   "architecture_decisions": [
     {
@@ -45,6 +45,7 @@
       "topic": "API-Versionierung",
       "decision": "URL-Pfad-Versionierung (/api/v1/)",
       "reasoning": "Einfach, explizit, keine Header-Magie. Teams können v1 stabil halten während v2 entwickelt wird.",
+      "alternatives_considered": [],
       "impact": ["all_teams"],
       "status": "accepted"
     },
@@ -55,8 +56,33 @@
       "topic": "Simulationsort (client vs. server)",
       "decision": "OFFEN — noch nicht entschieden",
       "reasoning": "Server-seitig ist zuverlässiger, client-seitig (WASM) ermöglicht Echtzeit-Interaktion. Simulation Team und Frontend Team müssen gemeinsam entscheiden.",
+      "alternatives_considered": ["Server-seitig Python", "Client-seitig WebAssembly"],
       "impact": ["simulation_team", "frontend_team"],
       "status": "open"
+    },
+    {
+      "id": "adr_006",
+      "timestamp": "2026-03-07T00:00:00Z",
+      "team": "data_pipeline_team",
+      "topic": "In-Memory-Speicher in Phase 1",
+      "decision": "Routers nutzen Python-Dicts als temporären Speicher, kein DB-Zugriff in Phase 1",
+      "reasoning": "Ermöglicht sofortigen API-Start ohne laufende TimescaleDB. Alle Consumer-Teams können gegen echte Endpoints testen. Migration zu TimescaleDB in Phase 2.",
+      "alternatives_considered": ["SQLite für Phase 1", "Mock-Responses ohne echten Router"],
+      "impact": ["climate_analysis_team", "visualization_team", "frontend_team"],
+      "status": "accepted",
+      "superseded_by": "P2-DP: TimescaleDB-Integration"
+    },
+    {
+      "id": "adr_007",
+      "timestamp": "2026-03-07T00:00:00Z",
+      "team": "data_pipeline_team",
+      "topic": "Knowledge-Base-Suche Phase 1",
+      "decision": "Keyword-Suche als Platzhalter für semantische Suche (LlamaIndex)",
+      "reasoning": "LlamaIndex-Integration ist Phase-2-Aufgabe (P2-AI-01). Phase 1 braucht funktionierenden Endpoint ohne ML-Dependency.",
+      "alternatives_considered": ["LlamaIndex direkt in Phase 1"],
+      "impact": ["ai_explanation_team"],
+      "status": "accepted",
+      "superseded_by": "P2-AI-01: LlamaIndex RAG-Pipeline"
     }
   ],
 
@@ -69,12 +95,14 @@
       "spec_file": "memory/api_contracts.md",
       "owner_team": "data_pipeline_team",
       "consumers": ["climate_analysis_team", "visualization_team", "frontend_team"],
-      "status": "defined_not_implemented"
+      "status": "implemented_phase1"
     },
     {
       "id": "api_analysis_v1",
       "module": "climate_analysis",
       "version": "1.0",
+      "defined_by": "system_architect",
+      "spec_file": "memory/api_contracts.md",
       "owner_team": "climate_analysis_team",
       "consumers": ["visualization_team", "simulation_team", "ai_explanation_team", "frontend_team"],
       "status": "defined_not_implemented"
@@ -83,6 +111,8 @@
       "id": "api_viz_v1",
       "module": "visualization_engine",
       "version": "1.0",
+      "defined_by": "system_architect",
+      "spec_file": "memory/api_contracts.md",
       "owner_team": "visualization_team",
       "consumers": ["frontend_team"],
       "status": "defined_not_implemented"
@@ -91,6 +121,8 @@
       "id": "api_simulation_v1",
       "module": "simulation_engine",
       "version": "1.0",
+      "defined_by": "system_architect",
+      "spec_file": "memory/api_contracts.md",
       "owner_team": "simulation_team",
       "consumers": ["frontend_team"],
       "status": "defined_not_implemented"
@@ -99,14 +131,18 @@
       "id": "api_knowledge_v1",
       "module": "knowledge_base",
       "version": "1.0",
+      "defined_by": "system_architect",
+      "spec_file": "memory/api_contracts.md",
       "owner_team": "data_pipeline_team",
       "consumers": ["ai_explanation_team", "frontend_team"],
-      "status": "defined_not_implemented"
+      "status": "implemented_phase1"
     },
     {
       "id": "api_explain_v1",
       "module": "ai_explanation",
       "version": "1.0",
+      "defined_by": "system_architect",
+      "spec_file": "memory/api_contracts.md",
       "owner_team": "ai_explanation_team",
       "consumers": ["frontend_team"],
       "status": "defined_not_implemented"
@@ -126,8 +162,9 @@
       "spatial_resolution": "global, 2°x2° grid",
       "format": "CSV / NetCDF",
       "license": "public_domain",
-      "status": "planned",
-      "priority": 1
+      "status": "connector_implemented",
+      "priority": 1,
+      "connector_file": "modules/data_ingestion/src/connectors/nasa_giss.py"
     },
     {
       "id": "noaa_co2_mauna_loa",
@@ -186,10 +223,17 @@
 
   "team_progress": {
     "data_pipeline_team": {
-      "status": "not_started",
-      "completed_tasks": [],
+      "status": "phase_1_complete",
+      "completed_tasks": [
+        "P1-DP-01",
+        "P1-DP-02",
+        "P1-DP-03",
+        "P1-DP-04",
+        "P1-DP-05"
+      ],
       "in_progress": [],
-      "blockers": []
+      "blockers": [],
+      "notes": "Alle Phase-1-Aufgaben abgeschlossen. Climate Analysis Team kann starten."
     },
     "climate_analysis_team": {
       "status": "not_started",
@@ -200,36 +244,67 @@
     "visualization_team": {
       "status": "not_started",
       "completed_tasks": [],
+      "in_progress": [],
       "blockers": ["Wartet auf Analyseergebnisse"]
     },
     "simulation_team": {
       "status": "not_started",
       "completed_tasks": [],
+      "in_progress": [],
       "blockers": ["ADR_005 (Simulationsort) noch offen"]
     },
     "frontend_team": {
       "status": "not_started",
       "completed_tasks": [],
+      "in_progress": [],
       "blockers": []
     },
     "ai_explanation_team": {
       "status": "not_started",
       "completed_tasks": [],
+      "in_progress": [],
       "blockers": ["Wartet auf erste Wissensbasis-Einträge"]
     },
     "ux_team": {
       "status": "not_started",
       "completed_tasks": [],
+      "in_progress": [],
       "blockers": []
     },
     "documentation_team": {
       "status": "not_started",
       "completed_tasks": [],
+      "in_progress": [],
       "blockers": []
     }
   },
 
-  "lessons_learned": [],
+  "lessons_learned": [
+    {
+      "id": "ll_001",
+      "timestamp": "2026-03-07T00:00:00Z",
+      "team": "data_pipeline_team",
+      "topic": "NASA GISTEMP CSV-Format",
+      "insight": "NASA GISTEMP v4 CSV enthält neben Monatswerten auch Jahresspalten (J-D, D-N, DJF usw.). Parser liest nur Jan–Dec, Jahreswerte werden ignoriert.",
+      "relevant_file": "modules/data_ingestion/src/connectors/nasa_giss.py"
+    },
+    {
+      "id": "ll_002",
+      "timestamp": "2026-03-07T00:00:00Z",
+      "team": "data_pipeline_team",
+      "topic": "Fehlende Werte NASA",
+      "insight": "Fehlende Werte sind als '***' codiert. Sie werden als NaN mit quality_flag=missing gespeichert, nicht verworfen — so bleibt der Zeitindex vollständig.",
+      "relevant_file": "modules/data_ingestion/src/connectors/nasa_giss.py"
+    },
+    {
+      "id": "ll_003",
+      "timestamp": "2026-03-07T00:00:00Z",
+      "team": "data_pipeline_team",
+      "topic": "Plausibilitätsgrenzen Temperaturanomalie",
+      "insight": "Anomalien außerhalb [-5, +5] °C werden als QUESTIONABLE markiert. Grenze basiert auf historischen Extrema aus GISTEMP v4.",
+      "relevant_file": "modules/data_ingestion/src/connectors/nasa_giss.py"
+    }
+  ],
 
   "open_questions": [
     {
@@ -246,6 +321,14 @@
       "raised_by": "system_architect",
       "raised_at": "2026-03-05T10:00:00Z",
       "impact": ["frontend_team", "ai_explanation_team", "ux_team"],
+      "status": "open"
+    },
+    {
+      "id": "oq_003",
+      "question": "Celery (synchron) vs. FastAPI Background Tasks (async) — welches Muster ist Projektstandard für Connector-Aufrufe?",
+      "raised_by": "data_pipeline_team",
+      "raised_at": "2026-03-07T00:00:00Z",
+      "impact": ["data_pipeline_team", "climate_analysis_team"],
       "status": "open"
     }
   ]
