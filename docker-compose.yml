@@ -1,0 +1,340 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# docker-compose.yml
+#
+# Was ist Docker Compose?
+# Docker Compose startet mehrere Programme gleichzeitig.
+# Statt jedes Programm manuell zu starten (Datenbank, Backend,
+# Frontend...) startest du alles mit einem einzigen Befehl:
+#   docker compose up
+#
+# Alle Services auf einen Blick (Port-Übersicht):
+#   api_gateway  → FastAPI (Port 8000) – alle API-Endpunkte /api/v1/
+#   frontend     → Next.js 15 (Port 3000) – Weboberfläche
+#   db           → TimescaleDB (Port 5432) – Zeitreihendatenbank
+#   redis        → Redis (Port 6379) – Cache für Celery + Ergebnisse
+#   minio        → MinIO (Port 9000 API, 9001 Web) – Rohdaten-Speicher
+#   swagger_ui   → Swagger UI (Port 8080) – interaktive API-Doku
+#
+# Repository-Struktur (spiegelt sich in den Volumes wider):
+#   services/api_gateway/  → FastAPI Gateway
+#   modules/               → Kernmodule (data_ingestion, climate_analysis usw.)
+#   frontend/              → Next.js Anwendung
+#   api/openapi.yaml       → API-Spezifikation (für Swagger UI)
+#
+# Team: Developer Setup Team | Branch: feature/developer-setup
+# ─────────────────────────────────────────────────────────────────────────────
+
+version: "3.9"
+
+services:
+
+  # ── API GATEWAY (FastAPI) ──────────────────────────────────────────────────
+  #
+  # Das API Gateway ist der zentrale Eintrittspunkt für alle Anfragen.
+  # Es leitet Anfragen an die richtigen Module weiter:
+  #   /api/v1/ingestion/*   → Data Ingestion Modul
+  #   /api/v1/analysis/*    → Climate Analysis Modul
+  #   /api/v1/viz/*         → Visualization Engine
+  #   /api/v1/simulation/*  → Simulation Engine
+  #   /api/v1/knowledge/*   → Knowledge Base
+  #   /api/v1/explain/*     → AI Explanation System
+  #   /api/v1/explore/*     → Exploration API
+  #
+  # Erreichbar unter: http://localhost:8000
+  # API-Dokumentation: http://localhost:8000/docs
+  api_gateway:
+    build:
+      # services/api_gateway/ enthält das FastAPI-Gateway
+      context: .
+      dockerfile: services/api_gateway/Dockerfile
+
+    container_name: climateinsight_api
+
+    # Port 8000 → Standard-Port des API Gateways (ADR-004: /api/v1/)
+    ports:
+      - "8000:8000"
+
+    env_file:
+      - .env
+
+    environment:
+      # Datenbank: TimescaleDB für Zeitreihendaten (ADR-001)
+      # "db" = Name des TimescaleDB-Containers unten
+      - DATABASE_URL=postgresql://climateinsight:password@db:5432/climateinsight
+
+      # Redis: wird von Celery (Task Queue) und als Cache genutzt
+      - REDIS_URL=redis://redis:6379/0
+
+      # MinIO: S3-kompatibler Objektspeicher für Rohdaten (CSV, NetCDF)
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=climateinsight
+      - MINIO_SECRET_KEY=password123
+
+      # Anthropic Claude API (für AI Explanation Modul)
+      # Wird aus der .env-Datei übernommen
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+
+    volumes:
+      # Gateway-Code einbinden für Hot-Reload bei Entwicklung
+      - ./services/api_gateway/src:/app/services/api_gateway/src
+
+      # Alle Kernmodule einbinden (werden vom Gateway importiert):
+      #   data_ingestion    → Datenabruf von NASA, NOAA, Copernicus usw.
+      #   climate_analysis  → Zeitreihenanalyse, Trends, Hypothesen
+      #   visualization_engine → Vega-Lite Spec Generator
+      #   simulation_engine → IPCC-Szenarien (RCP 2.6 / 4.5 / 8.5)
+      #   knowledge_base    → Wissensbasis
+      #   ai_explanation    → RAG-Pipeline + Claude-Artikelgenerator
+      - ./modules:/app/modules
+
+      # OpenAPI-Spezifikation einbinden (wird von Swagger UI genutzt)
+      - ./api/openapi.yaml:/app/api/openapi.yaml
+
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
+    networks:
+      - climateinsight_network
+
+    restart: unless-stopped
+
+  # ── FRONTEND (Next.js 15) ──────────────────────────────────────────────────
+  #
+  # Die Weboberfläche – was Nutzer im Browser sehen.
+  # Gebaut mit Next.js 15 (App Router), TypeScript, shadcn/ui, Tailwind CSS.
+  #
+  # Seiten (app/ Verzeichnis, App Router):
+  #   /           → app/page.tsx (Startseite)
+  #   /explore    → app/explore/ (Interaktive Exploration)
+  #   /articles   → app/articles/ (Klimaartikel)
+  #   /admin      → app/admin/ (Review-Interface für KI-Artikel)
+  #
+  # Erreichbar unter: http://localhost:3000
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+
+    container_name: climateinsight_frontend
+
+    ports:
+      - "3000:3000"
+
+    environment:
+      # Wo spricht das Frontend das API Gateway an?
+      # Im Browser: öffentliche Adresse (localhost)
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+
+      # Server-seitig (Next.js Server Components): interne Docker-Adresse
+      - INTERNAL_API_URL=http://api_gateway:8000
+
+      - NODE_ENV=development
+      - NEXT_TELEMETRY_DISABLED=1
+
+    volumes:
+      # Quellcode für Hot-Reload einbinden
+      # Struktur: frontend/src/app/, frontend/src/components/, usw.
+      - ./frontend:/app
+
+      # node_modules und .next NICHT vom Host einbinden –
+      # sie sollen im Container kompiliert bleiben
+      - /app/node_modules
+      - /app/.next
+
+    depends_on:
+      - api_gateway
+
+    networks:
+      - climateinsight_network
+
+    restart: unless-stopped
+
+  # ── TIMESCALEDB (Zeitreihendatenbank) ──────────────────────────────────────
+  #
+  # Was ist TimescaleDB? (ADR-001)
+  # TimescaleDB ist eine Erweiterung von PostgreSQL speziell für
+  # Zeitreihendaten. Klimadaten sind Zeitreihendaten: Messwerte zu
+  # bestimmten Zeitpunkten (z.B. Temperatur Januar 1960: -0.16 °C).
+  # TimescaleDB bietet 10–100x bessere Performance als plain PostgreSQL
+  # für solche Abfragen.
+  #
+  # Schreibt auf: Data Ingestion, Climate Analysis
+  # Gelesen von:  Analysis, Visualization, Frontend
+  #
+  # Erreichbar unter: localhost:5432 (mit DB-Tool wie DBeaver/pgAdmin)
+  db:
+    image: timescale/timescaledb:latest-pg16
+
+    container_name: climateinsight_db
+
+    ports:
+      - "5432:5432"
+
+    environment:
+      - POSTGRES_USER=climateinsight
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=climateinsight
+
+    volumes:
+      # Datenbankdaten dauerhaft speichern.
+      # Ohne dieses Volume gehen alle Daten beim Neustart verloren!
+      - db_data:/var/lib/postgresql/data
+
+      # SQL-Initialisierungsskripte (beim ersten Start ausgeführt):
+      # Tabellen für Datenpunkte, Datensätze, Jobs usw. anlegen.
+      - ./database/init:/docker-entrypoint-initdb.d
+
+    # Healthcheck: Ist PostgreSQL wirklich bereit Verbindungen anzunehmen?
+    # Der API Gateway wartet auf diesen Check bevor er startet.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U climateinsight -d climateinsight"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+    networks:
+      - climateinsight_network
+
+    restart: unless-stopped
+
+  # ── REDIS (Cache + Task Queue) ─────────────────────────────────────────────
+  #
+  # Redis hat zwei Aufgaben in ClimateInsight:
+  #
+  # 1. Task Queue für Celery (offene Frage oq_003: Celery vs. Background Tasks)
+  #    Wenn ein Analysejob gestartet wird (POST /api/v1/analysis/run),
+  #    landet die Aufgabe in Redis und Celery-Worker führen sie aus.
+  #
+  # 2. Cache für teure Berechnungen
+  #    Analyseergebnisse werden gecacht damit dieselbe Berechnung
+  #    nicht mehrfach durchgeführt werden muss.
+  #
+  # Erreichbar unter: localhost:6379
+  redis:
+    image: redis:7-alpine
+
+    container_name: climateinsight_redis
+
+    ports:
+      - "6379:6379"
+
+    # appendonly: Daten auf Festplatte schreiben (kein Datenverlust beim Neustart)
+    # maxmemory: Maximaler Speicher 256 MB
+    # maxmemory-policy: Wenn voll → älteste Einträge löschen
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+
+    volumes:
+      - redis_data:/data
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+    networks:
+      - climateinsight_network
+
+    restart: unless-stopped
+
+  # ── MINIO (Objektspeicher für Rohdaten) ────────────────────────────────────
+  #
+  # MinIO speichert unveränderliche Rohdaten (Projektstandard):
+  #   Bucket "climate-data" → Rohdaten von NASA, NOAA, Copernicus,
+  #                           IPCC, NSIDC (CSV, NetCDF)
+  #   Bucket "charts"       → Exportierte Diagramme (SVG, PNG)
+  #   Bucket "exports"      → CSV-Exporte für Nutzer
+  #
+  # MinIO ist S3-kompatibel: dieselbe API wie Amazon S3, läuft aber lokal.
+  #
+  # API:          http://localhost:9000  (für Programme)
+  # Web-Konsole:  http://localhost:9001  (für dich im Browser)
+  # Login: climateinsight / password123
+  minio:
+    image: minio/minio:latest
+
+    container_name: climateinsight_minio
+
+    ports:
+      - "9000:9000"   # S3-API
+      - "9001:9001"   # Web-Konsole
+
+    environment:
+      - MINIO_ROOT_USER=climateinsight
+      - MINIO_ROOT_PASSWORD=password123
+
+    command: server /data --console-address ":9001"
+
+    volumes:
+      - minio_data:/data
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+    networks:
+      - climateinsight_network
+
+    restart: unless-stopped
+
+  # ── SWAGGER UI (interaktive API-Dokumentation) ─────────────────────────────
+  #
+  # Swagger UI liest api/openapi.yaml und zeigt eine Weboberfläche.
+  # Dort kannst du:
+  #   - Alle 30+ API-Endpunkte des Projekts sehen
+  #   - Anfragen direkt im Browser ausprobieren (Send Request)
+  #   - Request- und Response-Schemas nachschlagen
+  #
+  # Alle Endpunkte nach Modul gruppiert:
+  #   Ingestion · Analysis · Visualization · Simulation ·
+  #   Knowledge · Explanation · Exploration
+  #
+  # Erreichbar unter: http://localhost:8080
+  swagger_ui:
+    image: swaggerapi/swagger-ui:latest
+
+    container_name: climateinsight_swagger
+
+    ports:
+      - "8080:8080"
+
+    environment:
+      # Zeige die openapi.yaml die der API Gateway bereitstellt
+      - SWAGGER_JSON_URL=http://localhost:8000/openapi.json
+      - PORT=8080
+
+    depends_on:
+      - api_gateway
+
+    networks:
+      - climateinsight_network
+
+    restart: unless-stopped
+
+# ── VOLUMES ───────────────────────────────────────────────────────────────────
+# Volumes sind dauerhafte Speicherbereiche die Docker verwaltet.
+# Sie überleben Container-Neustarts – deine Daten bleiben erhalten.
+volumes:
+  db_data:
+    driver: local   # Alle Klimadaten, Datensätze, Analyseergebnisse
+  redis_data:
+    driver: local   # Celery-Jobs, gecachte Berechnungen
+  minio_data:
+    driver: local   # Rohdaten: CSV/NetCDF von NASA, NOAA usw.
+
+# ── NETZWERK ──────────────────────────────────────────────────────────────────
+# Alle Services sind im selben virtuellen Netzwerk.
+# Sie sprechen sich per Service-Name an statt per IP-Adresse:
+#   api_gateway → "db:5432" statt "172.18.0.2:5432"
+networks:
+  climateinsight_network:
+    driver: bridge

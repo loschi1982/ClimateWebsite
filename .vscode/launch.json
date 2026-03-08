@@ -1,0 +1,206 @@
+{
+  // ─────────────────────────────────────────────────────────
+  // .vscode/launch.json
+  //
+  // Was ist diese Datei?
+  // Diese Datei definiert Debug-Konfigurationen für VSCode.
+  // Der Debugger erlaubt dir Code Zeile für Zeile auszuführen
+  // und genau zu sehen was in jeder Variable steht.
+  //
+  // Projekt-Struktur (relevant für den Debugger):
+  //   services/api_gateway/src/main.py  → FastAPI Einstiegspunkt
+  //   modules/                          → Kernmodule (Tests hier)
+  //   frontend/                         → Next.js Anwendung
+  //
+  // So startest du den Debugger:
+  //   1. Run-and-Debug-Symbol in der linken Leiste (▷ mit Käfer)
+  //   2. Konfiguration im Dropdown wählen
+  //   3. F5 drücken (oder grüner Play-Button)
+  //
+  // Breakpoints setzen:
+  //   Links neben die Zeilennummer klicken → roter Punkt erscheint.
+  //   Das Programm hält dort an.
+  //
+  // Team: Developer Setup Team | Branch: feature/developer-setup
+  // ─────────────────────────────────────────────────────────
+  "version": "0.2.0",
+  "configurations": [
+    // ── FASTAPI API GATEWAY ────────────────────────────────
+    {
+      "name": "🐍 API Gateway debuggen (FastAPI)",
+      "type": "python",
+      "request": "launch",
+
+      // uvicorn ist der Webserver der FastAPI ausführt.
+      "module": "uvicorn",
+
+      // Was bedeuten diese Argumente?
+      // "services.api_gateway.src.main:app"
+      //   → In services/api_gateway/src/main.py gibt es eine
+      //     Variable "app" – das ist unsere FastAPI-Anwendung
+      // "--reload" → Automatischer Neustart bei Code-Änderungen
+      // "--port 8000" → Standard API Gateway Port (ADR-004: /api/v1/)
+      "args": [
+        "services.api_gateway.src.main:app",
+        "--reload",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000"
+      ],
+
+      "cwd": "${workspaceFolder}",
+      "envFile": "${workspaceFolder}/.env",
+
+      // justMyCode: false → Breakpoints auch in Bibliotheken erlauben
+      // (nützlich um FastAPI/Pydantic intern zu verstehen)
+      "justMyCode": false,
+
+      "presentation": {
+        "group": "1 – Backend",
+        "order": 1
+      }
+    },
+
+    // ── PYTEST (ALLE TESTS) ────────────────────────────────
+    {
+      "name": "🧪 Pytest – alle Tests",
+      "type": "python",
+      "request": "launch",
+      "module": "pytest",
+
+      // Wo liegen die Tests?
+      // modules/*/tests/  → Tests der einzelnen Kernmodule
+      // tests/integration/ → Integrationstests
+      // tests/api/         → API-Tests
+      "args": [
+        "modules/",
+        "tests/",
+        "-v",
+        "-s",
+        "--no-header",
+        // Mindest-Coverage: 80% (Projektstandard)
+        "--cov=modules",
+        "--cov-report=term-missing"
+      ],
+
+      "cwd": "${workspaceFolder}",
+      "envFile": "${workspaceFolder}/.env",
+      "justMyCode": true,
+
+      "presentation": {
+        "group": "1 – Backend",
+        "order": 2
+      }
+    },
+
+    // ── PYTEST (EINZELNES MODUL) ───────────────────────────
+    {
+      "name": "🧪 Pytest – Data Ingestion Tests",
+      "type": "python",
+      "request": "launch",
+      "module": "pytest",
+
+      // Nur Tests für das Data Ingestion Modul ausführen
+      // (Aufgabe P1-DP-05: Unit Tests für Connector und Modelle)
+      "args": ["modules/data_ingestion/tests/", "-v", "-s"],
+
+      "cwd": "${workspaceFolder}",
+      "envFile": "${workspaceFolder}/.env",
+      "justMyCode": true,
+
+      "presentation": {
+        "group": "1 – Backend",
+        "order": 3
+      }
+    },
+
+    // ── PYTEST (AKTUELLE DATEI) ────────────────────────────
+    {
+      "name": "🧪 Pytest – aktuelle Datei",
+      "type": "python",
+      "request": "launch",
+      "module": "pytest",
+
+      // ${file} = die Datei die gerade in VSCode geöffnet ist.
+      // Praktisch um gezielt eine Test-Datei zu debuggen.
+      "args": ["${file}", "-v", "-s"],
+
+      "cwd": "${workspaceFolder}",
+      "envFile": "${workspaceFolder}/.env",
+      "justMyCode": true,
+
+      "presentation": {
+        "group": "1 – Backend",
+        "order": 4
+      }
+    },
+
+    // ── NEXT.JS FRONTEND ───────────────────────────────────
+    {
+      "name": "🌐 Next.js Frontend debuggen",
+      "type": "node",
+      "request": "launch",
+
+      // npm run dev → startet Next.js 15 im Entwicklungsmodus
+      // Konfiguration liegt in frontend/next.config.ts
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+
+      // Wo liegt der Frontend-Code?
+      // (next.config.ts, tailwind.config.ts, app/ usw.)
+      "cwd": "${workspaceFolder}/frontend",
+
+      "port": 3000,
+
+      // Source Maps: Debugging im TypeScript-Code statt
+      // im kompilierten JavaScript
+      "sourceMaps": true,
+
+      "presentation": {
+        "group": "2 – Frontend",
+        "order": 1
+      }
+    },
+
+    // ── NEXT.JS IN CHROME DEBUGGEN ─────────────────────────
+    {
+      "name": "🌐 Next.js in Chrome debuggen",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+
+      // Seiten des App Routers (Next.js 15):
+      //   app/page.tsx            → Startseite
+      //   app/explore/page.tsx    → Explorations-Seite
+      //   app/articles/page.tsx   → Artikelübersicht
+      //   app/admin/              → Review-Interface
+      "webRoot": "${workspaceFolder}/frontend",
+      "sourceMaps": true,
+
+      // Tipp: Zuerst "Next.js Frontend debuggen" starten,
+      // dann erst diese Konfiguration!
+      "presentation": {
+        "group": "2 – Frontend",
+        "order": 2
+      }
+    }
+  ],
+
+  // ── COMPOUND: ALLES ZUSAMMEN STARTEN ──────────────────────
+  // Startet mehrere Debugger gleichzeitig.
+  "compounds": [
+    {
+      "name": "🚀 API Gateway + Frontend zusammen",
+      "configurations": [
+        "🐍 API Gateway debuggen (FastAPI)",
+        "🌐 Next.js Frontend debuggen"
+      ],
+      "stopAll": true,
+      "presentation": {
+        "group": "0 – Alle",
+        "order": 1
+      }
+    }
+  ]
+}

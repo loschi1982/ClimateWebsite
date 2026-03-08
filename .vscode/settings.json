@@ -1,0 +1,201 @@
+{
+  // ─────────────────────────────────────────────────────────
+  // .vscode/settings.json
+  //
+  // Was ist diese Datei?
+  // Diese Datei legt fest wie VSCode in diesem Projekt arbeitet.
+  // Die Einstellungen gelten NUR für dieses Projekt – deine
+  // persönlichen VSCode-Einstellungen bleiben unberührt.
+  //
+  // Repository-Struktur (zur Orientierung):
+  //   services/api_gateway/  → FastAPI Gateway (Python)
+  //   modules/               → Kernmodule (Python)
+  //   frontend/              → Next.js Anwendung (TypeScript)
+  //   memory/                → Gemeinsame Projektdateien
+  //
+  // Team: Developer Setup Team | Branch: feature/developer-setup
+  // ─────────────────────────────────────────────────────────
+
+  // ── PYTHON ───────────────────────────────────────────────
+
+  // Wo liegt der Python-Interpreter?
+  // Für lokale Entwicklung ohne Docker: virtuelles Environment
+  //   Windows:    "${workspaceFolder}\\.venv\\Scripts\\python.exe"
+  //   macOS/Linux: "${workspaceFolder}/.venv/bin/python"
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+
+  // Black ist der automatische Code-Formatierer für Python.
+  // Er sorgt dafür dass Code im ganzen Projekt gleich aussieht –
+  // egal welches Team ihn geschrieben hat.
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.formatOnSave": true,
+    // 4 Leerzeichen Einrückung (Python-Standard PEP 8)
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true
+  },
+
+  // Black: maximale Zeilenlänge 88 Zeichen (Black-Standard)
+  "black-formatter.args": ["--line-length", "88"],
+
+  // Pylint prüft Python-Code auf Fehler und schlechten Stil.
+  // Wichtig: Pylint kennt unsere Pydantic-Modelle (pydantic v2)
+  "python.linting.pylintEnabled": true,
+  "python.linting.enabled": true,
+
+  // Pylint-Einstellungen für FastAPI + Pydantic v2
+  "pylint.args": [
+    "--disable=C0114",  // fehlende Modul-Docstrings erlauben
+    "--disable=R0903"   // zu wenige public methods erlauben (für Pydantic-Modelle)
+  ],
+
+  // ── TYPESCRIPT / JAVASCRIPT ───────────────────────────────
+
+  // Prettier formatiert TypeScript/JavaScript/CSS automatisch.
+  // Wird vom Frontend Team (Next.js 15, shadcn/ui, Tailwind) verwendet.
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    // 2 Leerzeichen (TypeScript/JavaScript-Standard)
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  },
+
+  // ── JSON / YAML ───────────────────────────────────────────
+
+  // JSON und YAML werden in vielen Projektdateien verwendet:
+  //   memory/project_memory.json   → Projektgedächtnis
+  //   api/openapi.yaml             → API-Spezifikation
+  //   docker-compose.yml           → Services
+  //   data/sources/*.yaml          → Quellendefinitionen
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2
+  },
+
+  // ── ZEILENENDEN ───────────────────────────────────────────
+
+  // WICHTIG für Windows-Nutzer!
+  // Windows: CRLF (\r\n) · Linux/macOS: LF (\n)
+  // Docker und der Server erwarten LF.
+  // Diese Einstellung erzwingt LF auf allen Betriebssystemen.
+  "files.eol": "\n",
+
+  // ── AUTO-SAVE ─────────────────────────────────────────────
+
+  // Dateien automatisch speichern wenn du den Tab/das Fenster wechselst.
+  "files.autoSave": "onFocusChange",
+
+  // ── EDITOR ────────────────────────────────────────────────
+
+  // Senkrechte Linien als Erinnerung für Zeilenlänge:
+  //   88  → Python / Black (PEP 8 + Black)
+  //   100 → TypeScript / Next.js
+  "editor.rulers": [88, 100],
+
+  // Unsichtbare Zeichen als kleine Punkte anzeigen –
+  // hilft versehentliche Leerzeichen am Zeilenende zu finden
+  "editor.renderWhitespace": "boundary",
+
+  "editor.lineNumbers": "on",
+
+  // Klammern farblich hervorheben (sehr nützlich in JSON und JSX)
+  "editor.bracketPairColorization.enabled": true,
+
+  // ── DATEIEN AUSBLENDEN ────────────────────────────────────
+
+  // Automatisch generierte Dateien und private Daten ausblenden –
+  // damit der Explorer nur relevanten Code zeigt
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/*.pyc": true,
+    "**/.pytest_cache": true,
+    "**/.mypy_cache": true,
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/.env": true,
+    "**/*.egg-info": true
+  },
+
+  // ── REST CLIENT ───────────────────────────────────────────
+
+  // Umgebungsvariablen für tests/api/manual_tests.http
+  // Base-URL entspricht dem API Gateway (Port 8000, Pfad /api/v1)
+  "rest-client.environmentVariables": {
+    "local": {
+      "baseUrl": "http://localhost:8000",
+      "apiBase": "http://localhost:8000/api/v1",
+      "frontendUrl": "http://localhost:3000",
+      "swaggerUrl": "http://localhost:8080"
+    }
+  },
+
+  // ── GIT ───────────────────────────────────────────────────
+
+  // Automatisch nach jedem Commit alle Branches laden.
+  // So siehst du immer den Stand aller Team-Branches:
+  //   feature/data-pipeline, feature/climate-analysis,
+  //   feature/visualization, feature/simulation,
+  //   feature/frontend, feature/ai-explanation,
+  //   feature/ux, feature/documentation, feature/developer-setup
+  "git.autofetch": true,
+
+  // Warnt bevor du in main committen würdest.
+  // (Als Erinnerung: NUR in feature/developer-setup arbeiten!)
+  "git.branchProtection": ["main"],
+
+  // ── TERMINAL ──────────────────────────────────────────────
+
+  // Windows: Git Bash als Standard-Terminal.
+  // Git Bash unterstützt Unix-Befehle (ls, cp, cat ...) die in
+  // dieser Anleitung und den Projekt-Skripten verwendet werden.
+  "terminal.integrated.defaultProfile.windows": "Git Bash",
+
+  // ── DOCKER ────────────────────────────────────────────────
+
+  "docker.showStartPage": false,
+
+  // Compose-Datei explizit angeben (liegt im Projektstamm)
+  "docker.dockerComposeBuild": false,
+
+  // ── TAILWIND CSS ──────────────────────────────────────────
+
+  // Tailwind CSS wird im Frontend (Next.js 15) verwendet.
+  // Konfiguration liegt in frontend/tailwind.config.ts
+  "tailwindCSS.experimental.classRegex": [
+    ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
+    ["cx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+  ],
+
+  // ── PYTHON PATHS ──────────────────────────────────────────
+
+  // Python-Suchpfade für Imports im Projekt.
+  // Das Backend ist in services/api_gateway/ und modules/ aufgeteilt.
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/services/api_gateway/src",
+    "${workspaceFolder}/modules"
+  ]
+}

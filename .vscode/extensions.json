@@ -1,0 +1,152 @@
+{
+  // ─────────────────────────────────────────────────────────
+  // .vscode/extensions.json
+  //
+  // Was ist diese Datei?
+  // Diese Datei empfiehlt Erweiterungen für VSCode.
+  // Wenn du das Projekt öffnest, fragt VSCode automatisch:
+  // "Möchtest du die empfohlenen Erweiterungen installieren?"
+  // Klick einfach auf "Alle installieren" – das reicht!
+  //
+  // Team: Developer Setup Team | Branch: feature/developer-setup
+  // ─────────────────────────────────────────────────────────
+  "recommendations": [
+    // ── PYTHON ─────────────────────────────────────────────
+
+    // ms-python.python
+    // Die offizielle Python-Erweiterung von Microsoft.
+    // Gibt dir: Syntax-Highlighting, Autovervollständigung,
+    // Fehlererkennung und den Python-Interpreter-Auswähler.
+    // PFLICHT für alle die am Backend arbeiten.
+    "ms-python.python",
+
+    // ms-python.black-formatter
+    // Integriert den Black Code-Formatierer direkt in VSCode.
+    // Black formatiert deinen Python-Code automatisch beim Speichern.
+    // Beispiel: aus "x=1+2" wird "x = 1 + 2" (lesbarer!)
+    "ms-python.black-formatter",
+
+    // ms-python.pylint
+    // Pylint prüft deinen Python-Code auf Fehler BEVOR du ihn ausführst.
+    // Rote Unterkringelungen zeigen dir: "Hier stimmt etwas nicht!"
+    // Wie ein Grammatikprüfer, aber für Python-Code.
+    "ms-python.pylint",
+
+    // ms-python.vscode-pylance
+    // Pylance macht Autovervollständigung für Python sehr viel schlauer.
+    // Es versteht den Typ jeder Variable und schlägt die richtigen
+    // Methoden vor. Spart viel Zeit beim Tippen!
+    "ms-python.vscode-pylance",
+
+    // ── TYPESCRIPT / NEXT.JS ───────────────────────────────
+
+    // esbenp.prettier-vscode
+    // Prettier formatiert TypeScript/JavaScript/CSS automatisch.
+    // Funktioniert genauso wie Black für Python.
+    // PFLICHT für alle die am Frontend arbeiten.
+    "esbenp.prettier-vscode",
+
+    // dbaeumer.vscode-eslint
+    // ESLint prüft TypeScript/JavaScript auf Fehler und schlechten Stil.
+    // Zeigt dir z.B.: "Diese Variable wird nie benutzt" oder
+    // "Hier fehlt ein Semikolon" – bevor du die Seite im Browser öffnest.
+    "dbaeumer.vscode-eslint",
+
+    // bradlc.vscode-tailwindcss
+    // Tailwind CSS ist das CSS-Framework das ClimateInsight verwendet.
+    // Diese Erweiterung gibt dir Autovervollständigung für alle
+    // Tailwind-Klassen direkt im Editor.
+    // Beispiel: du tippst "bg-" und siehst alle verfügbaren Farben.
+    "bradlc.vscode-tailwindcss",
+
+    // ── DOCKER ─────────────────────────────────────────────
+
+    // ms-azuretools.vscode-docker
+    // Zeigt alle laufenden Docker-Container in einer Seitenleiste.
+    // Du kannst Container starten/stoppen, Logs lesen und in Container
+    // "hineinschauen" – alles ohne Terminal-Befehle.
+    // PFLICHT für lokale Entwicklung mit Docker Compose.
+    "ms-azuretools.vscode-docker",
+
+    // ms-vscode-remote.remote-containers
+    // Ermöglicht es, direkt IM Docker-Container zu entwickeln.
+    // Das bedeutet: dein Code läuft in exakt der gleichen Umgebung
+    // wie auf dem Server – keine "bei mir funktioniert es aber!"-Probleme.
+    "ms-vscode-remote.remote-containers",
+
+    // ── API / REST ─────────────────────────────────────────
+
+    // humao.rest-client
+    // Mit dieser Erweiterung kannst du API-Anfragen direkt aus VSCode
+    // schicken – ohne externe Tools wie Postman oder Insomnia.
+    // Die Testdatei tests/api/manual_tests.http nutzt genau diese
+    // Erweiterung. Klick einfach auf "Send Request" über jedem Request.
+    "humao.rest-client",
+
+    // ── YAML / OPENAPI ─────────────────────────────────────
+
+    // redhat.vscode-yaml
+    // Gibt dir Autovervollständigung und Fehlerprüfung für YAML-Dateien.
+    // Wichtig für: docker-compose.yml, openapi.yaml und GitHub Actions.
+    // Verhindert nervige Einrückungsfehler in YAML.
+    "redhat.vscode-yaml",
+
+    // 42crunch.vscode-openapi
+    // Zeigt eine grafische Vorschau der OpenAPI-Dokumentation (openapi.yaml).
+    // Du siehst alle API-Endpunkte in einer übersichtlichen Oberfläche,
+    // ohne die Datei manuell zu lesen.
+    "42crunch.vscode-openapi",
+
+    // ── GIT ────────────────────────────────────────────────
+
+    // eamodio.gitlens
+    // GitLens zeigt dir direkt im Code wer welche Zeile wann
+    // geändert hat und warum (aus der Commit-Message).
+    // Sehr nützlich um zu verstehen, warum Code so geschrieben wurde.
+    "eamodio.gitlens",
+
+    // mhutchie.git-graph
+    // Zeigt die Git-Historie als grafischen Baum.
+    // Du siehst alle Branches, Merges und Commits auf einen Blick.
+    // Hilfreich um zu verstehen wie die Team-Branches zusammenhängen.
+    "mhutchie.git-graph",
+
+    // ── MARKDOWN / DOKUMENTATION ───────────────────────────
+
+    // yzhang.markdown-all-in-one
+    // Verbessert das Schreiben von Markdown-Dateien (.md).
+    // Gibt dir: Vorschau, automatische Inhaltsverzeichnisse,
+    // Tastenkürzel für Fettschrift/Links usw.
+    // Wichtig für alle die an der Dokumentation arbeiten.
+    "yzhang.markdown-all-in-one",
+
+    // ── HILFREICH FÜR ALLE ─────────────────────────────────
+
+    // streetsidesoftware.code-spell-checker
+    // Ein Rechtschreibprüfer für Code und Kommentare auf Englisch.
+    // Unterringelt Tippfehler in Variablennamen, Kommentaren und Strings.
+    "streetsidesoftware.code-spell-checker",
+
+    // streetsidesoftware.code-spell-checker-german
+    // Erweiterung für den deutschen Wortschatz (für deutsche Kommentare).
+    "streetsidesoftware.code-spell-checker-german",
+
+    // usernamehw.errorlens
+    // Zeigt Fehlermeldungen direkt in der Zeile an, statt nur als
+    // kleines Symbol am Rand. So siehst du sofort was falsch ist
+    // und musst nicht mit der Maus über den Fehler fahren.
+    "usernamehw.errorlens",
+
+    // PKief.material-icon-theme
+    // Zeigt passende Icons für Dateitypen im Explorer.
+    // Python-Dateien bekommen ein Python-Icon, Docker-Dateien ein
+    // Wal-Icon usw. Macht das Navigieren deutlich einfacher.
+    "PKief.material-icon-theme",
+
+    // christian-kohler.path-intellisense
+    // Autovervollständigung für Dateipfade.
+    // Wenn du import "../components/..." schreibst, schlägt VSCode
+    // automatisch die richtigen Pfade vor.
+    "christian-kohler.path-intellisense"
+  ]
+}
