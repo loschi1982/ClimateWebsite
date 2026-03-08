@@ -1,368 +1,183 @@
-# ClimateInsight — Aufgaben pro Team
-## Version 1.0 | team_tasks.md
+# Team-Aufgaben – Klimaplattform
+*Letzte Aktualisierung: 2025-01-01 | Verantwortlich: Documentation Team*
+
+Status-Legende: 🔴 offen · 🟡 in Bearbeitung · 🟢 abgeschlossen · ⏸️ blockiert
 
 ---
 
-> **Wie benutze ich diese Datei?**
-> Jedes Team liest zu Beginn einer Session seinen Abschnitt.
-> Abgeschlossene Aufgaben werden in `project_memory.json` unter
-> `team_progress → [team] → completed_tasks` dokumentiert.
+## Data Pipeline Team
+**Branch:** `team/data-pipeline`
+
+| # | Aufgabe | Status | Phase | Abhängigkeit |
+|---|---|---|---|---|
+| DP-01 | NASA GISS Temperaturdaten abrufen und normalisieren | 🔴 | 1 | – |
+| DP-02 | NOAA Mauna Loa CO₂-Daten abrufen und normalisieren | 🔴 | 1 | – |
+| DP-03 | NSIDC Meereisausdehnung abrufen und normalisieren | 🔴 | 1 | – |
+| DP-04 | Validierungslogik implementieren (Wertebereiche, Lücken) | 🔴 | 1 | DP-01 |
+| DP-05 | Lokalen Datei-Cache implementieren (data/raw/, data/processed/) | 🔴 | 1 | DP-01 |
+| DP-06 | GET /api/v1/data Endpunkt implementieren | 🔴 | 1 | DP-01, DP-02 |
+| DP-07 | GET /api/v1/data/sources Endpunkt implementieren | 🔴 | 1 | DP-06 |
+| DP-08 | Unit Tests für alle Abruf-Funktionen (mit Mocks) | 🔴 | 1 | DP-06 |
+| DP-09 | Copernicus CDS API integrieren | 🔴 | 2 | DP-01 |
+| DP-10 | Automatischer täglicher Datenabruf (Scheduler) | 🔴 | 3 | DP-06 |
 
 ---
 
-## Entwicklungsphasen
+## Climate Analysis Team
+**Branch:** `team/climate-analysis`
 
-```
-Phase 1 (aktuell): Walking Skeleton
-  → Erste echte Daten fließen, erste Seite ist sichtbar
-
-Phase 2: Vollständige Datenpipeline
-  → Alle Datenquellen, vollständige Analysen
-
-Phase 3: Interaktive Exploration
-  → Alle Explorationsfunktionen, Simulationen
-
-Phase 4: KI-Artikel und Veröffentlichung
-  → Artikel-Workflow, Review-System, Launch
-```
-
----
-
-## 🟦 Data Pipeline Team
-
-**Branch:** `feature/data-pipeline`
-**Abhängigkeiten:** keiner (Startpunkt des Systems)
-**Wird gebraucht von:** Climate Analysis, Visualization, Frontend
-
-### Phase 1 — Priorität: HOCH
-
-- [ ] **P1-DP-01** Pydantic-Datenmodelle definieren
-  - `DataPoint`, `ClimateDataset`, `IngestionJob`, `SourceReference`
-  - Datei: `modules/data_ingestion/src/models/climate_dataset.py`
-
-- [ ] **P1-DP-02** NASA GISS Connector implementieren
-  - GISTEMP v4 Temperaturdaten abrufen und normalisieren
-  - Datei: `modules/data_ingestion/src/connectors/nasa_giss.py`
-
-- [ ] **P1-DP-03** Ingestion API Router implementieren
-  - Alle 5 Endpoints aus `api_contracts.md`
-  - Datei: `services/api_gateway/src/routers/ingestion.py`
-
-- [ ] **P1-DP-04** Knowledge Base Router implementieren
-  - Datei: `services/api_gateway/src/routers/knowledge.py`
-
-- [ ] **P1-DP-05** Unit Tests für Connector und Modelle
-  - Datei: `modules/data_ingestion/tests/`
-
-### Phase 2
-
-- [ ] **P2-DP-01** NOAA CO₂ Connector (Mauna Loa)
-- [ ] **P2-DP-02** NSIDC Meereis-Connector
-- [ ] **P2-DP-03** NASA Meeresspiegel-Connector
-- [ ] **P2-DP-04** Airflow DAGs für automatischen Abruf
-- [ ] **P2-DP-05** Copernicus C3S Connector
+| # | Aufgabe | Status | Phase | Abhängigkeit |
+|---|---|---|---|---|
+| CA-01 | Lineare Trendberechnung implementieren (scipy) | 🔴 | 1 | DP-01 |
+| CA-02 | Pearson-Korrelation zwischen zwei Variablen | 🔴 | 1 | DP-01, DP-02 |
+| CA-03 | Anomalieerkennung (Abweichung vom Referenzzeitraum) | 🔴 | 1 | DP-01 |
+| CA-04 | Gleitenden Mittelwert berechnen | 🔴 | 1 | DP-01 |
+| CA-05 | GET /api/v1/analysis/trend Endpunkt | 🔴 | 1 | CA-01 |
+| CA-06 | GET /api/v1/analysis/correlation Endpunkt | 🔴 | 1 | CA-02 |
+| CA-07 | GET /api/v1/analysis/anomalies Endpunkt | 🔴 | 1 | CA-03 |
+| CA-08 | Unit Tests (positive Trends, Korrelation, NaN-Umgang) | 🔴 | 1 | CA-05, CA-06 |
+| CA-09 | AnalysisSummary-Format für AI Explanation Team definieren | 🔴 | 2 | CA-01 |
+| CA-10 | Automatische Trendanalyse nach neuem Datenabruf | 🔴 | 3 | CA-01, DP-10 |
 
 ---
 
-## 🟩 Climate Analysis Team
+## Visualization Team
+**Branch:** `team/visualization`
 
-**Branch:** `feature/climate-analysis`
-**Abhängigkeiten:** Data Pipeline Team (P1-DP-01, P1-DP-02)
-**Wird gebraucht von:** Visualization, Simulation, AI Explanation, Frontend
-
-### Phase 1 — Priorität: HOCH
-
-- [ ] **P1-CA-01** Lineare Trendanalyse implementieren
-  - OLS-Regression, Konfidenzintervalle, p-Wert
-  - Datei: `modules/climate_analysis/src/analyzers/trend_analyzer.py`
-
-- [ ] **P1-CA-02** Analysis API Router implementieren
-  - Alle 4 Endpoints aus `api_contracts.md`
-  - Datei: `services/api_gateway/src/routers/analysis.py`
-
-- [ ] **P1-CA-03** Unit Tests für Trendanalyse
-  - Referenzwerte: IPCC AR6 Temperaturtrend ±5%
-  - Datei: `modules/climate_analysis/tests/test_trend_analyzer.py`
-
-- [ ] **P1-CA-04** Jupyter Notebook: Temperaturtrend
-  - Datei: `modules/climate_analysis/notebooks/01_temperature_trend.ipynb`
-
-### Phase 2
-
-- [ ] **P2-CA-01** Anomalieerkennung (Z-Score + IQR)
-- [ ] **P2-CA-02** Kreuzkorrelationsanalyse
-- [ ] **P2-CA-03** Zeitreihendekomposition (Trend + Saisonalität)
-- [ ] **P2-CA-04** Hypothesengenerator
-- [ ] **P2-CA-05** Kurzfrist-Forecast (max. 10 Jahre)
+| # | Aufgabe | Status | Phase | Abhängigkeit |
+|---|---|---|---|---|
+| VZ-01 | TimeSeriesChart.jsx implementieren (Recharts LineChart) | 🔴 | 1 | CA-05 |
+| VZ-02 | TrendOverlay.jsx (Trendlinie über Zeitreihe) | 🔴 | 1 | CA-05 |
+| VZ-03 | CorrelationChart.jsx (ScatterChart) | 🔴 | 1 | CA-06 |
+| VZ-04 | MapView.jsx (Leaflet, Basis-Kartenansicht) | 🔴 | 2 | – |
+| VZ-05 | Backend: timeseries.py (Daten für Charts aufbereiten) | 🔴 | 1 | CA-01 |
+| VZ-06 | Quellenangabe in alle Diagramme einbauen | 🔴 | 1 | VZ-01 |
+| VZ-07 | Vitest-Tests: Komponenten rendern, Quellenangabe vorhanden | 🔴 | 1 | VZ-01 |
+| VZ-08 | Farbpalette mit UX Team abstimmen und umsetzen | 🔴 | 1 | UX-01 |
+| VZ-09 | Leere-Daten-Fehlermeldung in allen Komponenten | 🔴 | 1 | VZ-01 |
+| VZ-10 | Responsive Darstellung (Mobile) | 🔴 | 2 | VZ-01 |
 
 ---
 
-## 🟨 Visualization Team
+## Simulation Team
+**Branch:** `team/simulation`
 
-**Branch:** `feature/visualization`
-**Abhängigkeiten:** Climate Analysis Team (P1-CA-01), UX Team (P1-UX-01)
-**Wird gebraucht von:** Frontend
-
-### Phase 1 — Priorität: HOCH
-
-- [ ] **P1-VZ-01** Zeitreihen-Chart-Komponente
-  - D3.js / Observable Plot, Trendlinie, Konfidenzband, Tooltip
-  - Datei: `frontend/src/components/charts/TimeSeriesChart.tsx`
-
-- [ ] **P1-VZ-02** Farbschemata definieren
-  - `diverging_rdbu`, `sequential_blue`, `sequential_orange`
-  - Datei: `frontend/src/lib/viz/color_schemes.ts`
-
-- [ ] **P1-VZ-03** Visualization API Router
-  - Alle 4 Endpoints aus `api_contracts.md`
-  - Datei: `services/api_gateway/src/routers/viz.py`
-
-- [ ] **P1-VZ-04** Vega-Lite Spec Generator (Python)
-  - Datei: `modules/visualization_engine/src/spec_generator.py`
-
-### Phase 2
-
-- [ ] **P2-VZ-01** Korrelationsmatrix-Komponente
-- [ ] **P2-VZ-02** Weltkarten-Visualisierung (Deck.gl)
-- [ ] **P2-VZ-03** Export-Funktion (SVG, PNG, CSV)
-- [ ] **P2-VZ-04** Scatter-Plot-Komponente
+| # | Aufgabe | Status | Phase | Abhängigkeit |
+|---|---|---|---|---|
+| SI-01 | RCP-Temperaturszenarien implementieren (rcp26, rcp45, rcp85) | 🔴 | 2 | – |
+| SI-02 | CO₂-Akkumulationsmodell implementieren | 🔴 | 2 | – |
+| SI-03 | Meereis-Temperatur-Modell implementieren | 🔴 | 2 | – |
+| SI-04 | POST /api/v1/simulation/run Endpunkt | 🔴 | 2 | SI-01 |
+| SI-05 | GET /api/v1/simulation/scenarios Endpunkt | 🔴 | 2 | SI-01 |
+| SI-06 | ScenarioSlider.jsx (React, Range-Input) | 🔴 | 2 | SI-04 |
+| SI-07 | Disclaimer in alle SimResult-Antworten einbauen | 🔴 | 2 | SI-04 |
+| SI-08 | Unit Tests (RCP-Reihenfolge, Disclaimer vorhanden) | 🔴 | 2 | SI-04 |
+| SI-09 | Erklärungstext für jedes Szenario schreiben | 🔴 | 2 | SI-01 |
 
 ---
 
-## 🟧 Simulation Team
+## Frontend Team
+**Branch:** `team/frontend`
 
-**Branch:** `feature/simulation`
-**Abhängigkeiten:** Climate Analysis Team (P1-CA-01)
-**Offene Frage:** ADR-005 (server- vs. client-seitig) — mit Frontend Team klären
-
-### Phase 1 — Priorität: MITTEL
-
-- [ ] **P1-SM-01** ADR-005 entscheiden
-  - Koordination mit Frontend Team erforderlich
-  - Ergebnis in `project_memory.json` dokumentieren
-
-- [ ] **P1-SM-02** IPCC-Szenarien als Datenmodelle
-  - RCP 2.6 / 4.5 / 8.5
-  - Dateien: `data/scenarios/rcp_*.yaml`
-  - Datei: `modules/simulation_engine/src/models/scenario.py`
-
-- [ ] **P1-SM-03** Simulation API Router
-  - Alle 4 Endpoints aus `api_contracts.md`
-  - Datei: `services/api_gateway/src/routers/simulation.py`
-
-### Phase 2
-
-- [ ] **P2-SM-01** Parametrisierbarer Simulationsmotor
-- [ ] **P2-SM-02** Unsicherheitsbänder (5.–95. Perzentile)
-- [ ] **P2-SM-03** Validierungstests gegen IPCC AR6
-- [ ] **P2-SM-04** WebAssembly-Version (falls ADR-005 = client-seitig)
+| # | Aufgabe | Status | Phase | Abhängigkeit |
+|---|---|---|---|---|
+| FE-01 | React-Projektstruktur einrichten (Vite, Tailwind, Router) | 🔴 | 1 | – |
+| FE-02 | Layout-Komponenten: Navbar, Footer | 🔴 | 1 | UX-01 |
+| FE-03 | Home.jsx (Übersichtsseite) | 🔴 | 1 | FE-02 |
+| FE-04 | API-Client (client.js) implementieren | 🔴 | 1 | DP-06 |
+| FE-05 | useClimateData Hook implementieren | 🔴 | 1 | FE-04 |
+| FE-06 | Explore.jsx (Explorationsseite, Grundstruktur) | 🔴 | 1 | FE-04 |
+| FE-07 | DatasetSelector-Komponente | 🔴 | 1 | FE-06 |
+| FE-08 | VariableComparison-Komponente | 🔴 | 2 | VZ-01, VZ-03 |
+| FE-09 | Simulation.jsx (Simulationsseite) | 🔴 | 2 | SI-06 |
+| FE-10 | Articles.jsx (Artikelseite) | 🔴 | 2 | AE-04 |
+| FE-11 | About.jsx (Über das Projekt, Quellen, Methoden) | 🔴 | 1 | – |
+| FE-12 | Fehlerbehandlung: API nicht erreichbar | 🔴 | 1 | FE-04 |
+| FE-13 | Vitest-Tests: Alle Seiten rendern fehlerfrei | 🔴 | 1 | FE-03 |
+| FE-14 | useSimulation Hook | 🔴 | 2 | SI-04 |
 
 ---
 
-## 🟥 Frontend Team
+## AI Explanation Team
+**Branch:** `team/ai-explanation`
 
-**Branch:** `feature/frontend`
-**Abhängigkeiten:** UX Team (P1-UX-01), Visualization Team (P1-VZ-01)
-**Konsumiert:** alle APIs
-
-### Phase 1 — Priorität: HOCH
-
-- [ ] **P1-FE-01** TypeScript API-Client
-  - Typisierte Funktionen für alle 6 Module
-  - Datei: `frontend/src/lib/api.ts`
-
-- [ ] **P1-FE-02** TypeScript-Typen aus API-Verträgen
-  - Datei: `frontend/src/types/climate.ts`
-
-- [ ] **P1-FE-03** Next.js Grundstruktur (4 Seiten)
-  - `app/page.tsx` — Startseite
-  - `app/explore/page.tsx` — Exploration
-  - `app/articles/page.tsx` — Artikelübersicht
-  - `app/articles/[id]/page.tsx` — Einzelartikel
-
-- [ ] **P1-FE-04** Explorations-Seite (Basis)
-  - Dataset-Auswahl, Zeitraumwähler, Zeitreihendiagramm
-  - URL-State für Sharing
-
-### Phase 2
-
-- [ ] **P2-FE-01** Variablenvergleich (mehrere Datensätze)
-- [ ] **P2-FE-02** Szenario-Simulator integrieren
-- [ ] **P2-FE-03** Admin/Review-Interface
-- [ ] **P2-FE-04** Artikeldarstellung mit Quellenangaben
-- [ ] **P2-FE-05** E2E-Tests (Playwright)
+| # | Aufgabe | Status | Phase | Abhängigkeit |
+|---|---|---|---|---|
+| AE-01 | Anthropic API-Client einrichten (ANTHROPIC_API_KEY) | 🔴 | 2 | – |
+| AE-02 | Basis-Prompt für Artikelgenerierung entwickeln | 🔴 | 2 | AE-01 |
+| AE-03 | generate_article() implementieren | 🔴 | 2 | AE-02, CA-09 |
+| AE-04 | POST /api/v1/articles/generate Endpunkt | 🔴 | 2 | AE-03 |
+| AE-05 | GET /api/v1/articles Endpunkt | 🔴 | 2 | AE-03 |
+| AE-06 | GET /api/v1/articles/{id} Endpunkt | 🔴 | 2 | AE-03 |
+| AE-07 | Job-System für asynchrone Artikelgenerierung | 🔴 | 2 | AE-04 |
+| AE-08 | suggest_topics() implementieren | 🔴 | 2 | AE-03 |
+| AE-09 | explain_trend() für kurze Erklärungen | 🔴 | 2 | AE-03 |
+| AE-10 | Unit Tests mit Mock-Anthropic-API | 🔴 | 2 | AE-03 |
+| AE-11 | Sicherstellen: Alle Artikel erhalten status: "draft" | 🔴 | 2 | AE-03 |
 
 ---
 
-## 🟪 AI Explanation Team
+## UX Team
+**Branch:** `team/ux`
 
-**Branch:** `feature/ai-explanation`
-**Abhängigkeiten:** Knowledge Base (P1-DP-04), Climate Analysis (P2-CA-04)
-**Kritische Regel:** Jeder Artikel hat immer `status: pending_review`
-
-### Phase 1 — Priorität: NIEDRIG (wartet auf Daten)
-
-- [ ] **P1-AI-01** Knowledge Base Seed-Daten erstellen
-  - 2 erste Einträge manuell
-  - Dateien: `data/knowledge_seeds/*.json`
-
-- [ ] **P1-AI-02** Review-Richtlinien dokumentieren
-  - Datei: `docs/review_guidelines.md`
-
-### Phase 2
-
-- [ ] **P2-AI-01** RAG-Pipeline (LlamaIndex)
-  - Datei: `modules/ai_explanation/src/rag/retriever.py`
-
-- [ ] **P2-AI-02** Artikelgenerator (Claude API)
-  - Datei: `modules/ai_explanation/src/generator/article_generator.py`
-
-- [ ] **P2-AI-03** AI Explanation API Router
-  - Datei: `services/api_gateway/src/routers/explain.py`
-
-- [ ] **P2-AI-04** Review-Workflow-Backend
+| # | Aufgabe | Status | Phase | Abhängigkeit |
+|---|---|---|---|---|
+| UX-01 | Design-System definieren (Farben, Typografie, Abstände) | 🔴 | 1 | – |
+| UX-02 | Tailwind-Konfiguration anpassen (custom colors) | 🔴 | 1 | UX-01 |
+| UX-03 | CSS-Variablen in global.css definieren | 🔴 | 1 | UX-01 |
+| UX-04 | Navigationsstruktur festlegen | 🔴 | 1 | – |
+| UX-05 | UX-Review: Navbar und Footer (Frontend Team) | 🔴 | 1 | FE-02 |
+| UX-06 | UX-Review: TimeSeriesChart (Visualization Team) | 🔴 | 1 | VZ-01 |
+| UX-07 | UX-Review: Explorationsseite (Frontend Team) | 🔴 | 2 | FE-06 |
+| UX-08 | UX-Review: ScenarioSlider (Simulation Team) | 🔴 | 2 | SI-06 |
+| UX-09 | Barrierefreiheitsprüfung (Kontrast, Tastaturnavigation) | 🔴 | 2 | FE-03 |
+| UX-10 | design-system.md schreiben und aktuell halten | 🔴 | 1 | UX-01 |
 
 ---
 
-## ⬜ UX Team
+## Documentation Team
+**Branch:** `team/documentation`
 
-**Branch:** `feature/ux`
-**Abhängigkeiten:** keine (Startpunkt)
-**Wird gebraucht von:** Visualization Team, Frontend Team
-
-### Phase 1 — Priorität: HOCH (andere Teams warten darauf)
-
-- [ ] **P1-UX-01** Design-Token-System
-  - Farbpaletten, Typografie, Abstände
-  - Datei: `frontend/tailwind.config.ts`
-  - Datei: `frontend/src/styles/globals.css`
-
-- [ ] **P1-UX-02** Design-System-Dokumentation
-  - Datei: `docs/design_system.md`
-
-- [ ] **P1-UX-03** Explorations-Wireframes
-  - Datei: `docs/ux/exploration_wireframes.md`
-
-### Phase 2
-
-- [ ] **P2-UX-01** Barrierefreiheits-Checkliste
-  - Datei: `docs/ux/accessibility_checklist.md`
-
-- [ ] **P2-UX-02** Offene Frage oq_002 beantworten
-  - Mehrsprachigkeit: DE + EN von Anfang an, oder erst DE?
-  - Eintrag in `project_memory.json`
-
-- [ ] **P2-UX-03** Komponentenspezifikationen
-  - Charts, Karten, Navigation, Quellenangabe
+| # | Aufgabe | Status | Phase | Abhängigkeit |
+|---|---|---|---|---|
+| DO-01 | README.md erstellen | 🟢 | 1 | – |
+| DO-02 | docs/architecture.md erstellen | 🟢 | 1 | – |
+| DO-03 | docs/api_contracts.md erstellen | 🟢 | 1 | – |
+| DO-04 | memory/team_tasks.md erstellen | 🟢 | 1 | – |
+| DO-05 | memory/project_memory.json initialisieren | 🟢 | 1 | – |
+| DO-06 | docs/setup_guide.md schreiben (Zorin OS 17, Anfänger) | 🔴 | 1 | – |
+| DO-07 | docs/data_sources.md schreiben | 🔴 | 1 | DP-01 |
+| DO-08 | CONTRIBUTING.md schreiben | 🔴 | 1 | – |
+| DO-09 | Code-Kommentare aller Teams prüfen (Phase-1-Module) | 🔴 | 1 | DP-08, CA-08 |
+| DO-10 | project_memory.json: Einträge anderer Teams prüfen | 🔴 | 1 | – |
+| DO-11 | docs/setup_guide.md aktuell halten (nach jeder Abhängigkeitsänderung) | 🔴 | laufend | – |
+| DO-12 | lessons_learned in project_memory.json zusammenfassen | 🔴 | laufend | – |
 
 ---
 
-## 📄 Documentation Team
+## Phasenplan
 
-**Branch:** `feature/documentation`
-**Abhängigkeiten:** liest alle anderen Teams via `project_memory.json`
+### Phase 1 (Wochen 1–6): Datenpipeline und erste Visualisierung
+**Ziel:** Temperatur- und CO₂-Daten abrufbar und als Diagramm darstellbar
 
-### Phase 1 — Priorität: MITTEL
+Beteiligte Teams: Data Pipeline, Climate Analysis, Visualization, Frontend, UX, Documentation
 
-- [ ] **P1-DO-01** README.md erstellen
-  - Datei: `README.md`
-
-- [ ] **P1-DO-02** CONTRIBUTING.md erstellen
-  - Datei: `CONTRIBUTING.md`
-
-- [ ] **P1-DO-03** Wissenschaftliches Glossar (15 Einträge)
-  - Datei: `docs/science/glossary.md`
-
-- [ ] **P1-DO-04** OpenAPI Spec prüfen und synchronisieren
-  - Datei: `api/openapi.yaml` mit `memory/api_contracts.md` abgleichen
-
-### Phase 2
-
-- [ ] **P2-DO-01** Architekturübersicht für Einsteiger
-  - Datei: `docs/architecture/overview.md`
-
-- [ ] **P2-DO-02** Deployment-Guide aktuell halten
-  - Datei: `docs/deployment/local_setup.md`
-
-- [ ] **P2-DO-03** Glossar auf 30+ Einträge erweitern
+Meilenstein: `http://localhost:5173/explore` zeigt Temperatur- und CO₂-Zeitreihen mit Trendlinie.
 
 ---
 
-## 🛠️ Developer Setup Team
+### Phase 2 (Wochen 7–12): Simulation und KI-Erklärungen
+**Ziel:** Interaktive Szenarien und erste KI-Artikelentwürfe
 
-**Branch:** `feature/developer-setup`
-**Abhängigkeiten:** keine (Startpunkt, parallel zu allen anderen)
-**Wird gebraucht von:** alle Teams
+Beteiligte Teams: Simulation, AI Explanation, Frontend, Visualization
 
-### Phase 1 — Priorität: SEHR HOCH (alle anderen warten darauf)
-
-- [ ] **P1-DS-01** docker-compose.yml erstellen
-  - Alle lokalen Services: API, Frontend, DB, Redis, MinIO, Swagger
-  - Datei: `docker-compose.yml`
-
-- [ ] **P1-DS-02** .env.example erstellen
-  - Alle Umgebungsvariablen mit Erklärungen
-  - Datei: `.env.example`
-
-- [ ] **P1-DS-03** VSCode-Konfiguration
-  - Dateien: `.vscode/settings.json`, `.vscode/extensions.json`, `.vscode/launch.json`
-
-- [ ] **P1-DS-04** Manuelle API-Tests
-  - Fertige .http Datei für alle Endpoints
-  - Datei: `tests/api/manual_tests.http`
-
-- [ ] **P1-DS-05** Setup-Anleitung (Zorin OS 17)
-  - Datei: `docs/deployment/local_setup.md`
-
-### Phase 2
-
-- [ ] **P2-DS-01** GitHub Actions CI/CD Pipeline
-  - Datei: `.github/workflows/ci.yml`
-
-- [ ] **P2-DS-02** Memory-Validierungs-Workflow
-  - Datei: `.github/workflows/memory-validation.yml`
-
-- [ ] **P2-DS-03** docker-compose.prod.yml für Produktion
+Meilenstein: Simulationsseite mit RCP-Schieberegler funktioniert. Erste Artikelentwürfe im System.
 
 ---
 
-## Abhängigkeitsgraph Phase 1
+### Phase 3 (Wochen 13–18): Interaktive Exploration und UX-Verfeinerung
+**Ziel:** Vollständige Explorationsseite für Endnutzer
 
-```
-Developer Setup Team  ──────────────────────────────┐
-UX Team               ──────────────────────────┐   │
-Data Pipeline Team    ──────────────────────┐   │   │
-                                            │   │   │
-                                            ▼   ▼   ▼
-Climate Analysis Team ────────────────► Visualization Team
-        │                                       │
-        │                                       ▼
-        └──────────────────────────────► Frontend Team
-                                               ▲
-Simulation Team ───────────────────────────────┘
-```
+Beteiligte Teams: Frontend, UX, alle
 
-**Was das bedeutet:**
-- Developer Setup Team und UX Team können sofort starten
-- Data Pipeline Team kann sofort starten
-- Climate Analysis Team startet sobald erste Datensätze vorliegen
-- Visualization Team startet sobald Analysen und Design-Tokens vorliegen
-- Frontend Team startet sobald Basis-Komponenten und API-Client bereit sind
-
----
-
-## Fortschritt verfolgen
-
-Den aktuellen Stand aller Teams findest du in:
-```
-memory/project_memory.json → team_progress
-```
-
-Nach jeder abgeschlossenen Aufgabe:
-```json
-"completed_tasks": ["P1-DP-01", "P1-DP-02"]
-```
-
----
-
-*Stand: 2026-03-05 | Repository: loschi1982/ClimateWebsite*
+Meilenstein: Alle Sektionen der Plattform sind nutzbar und UX-reviewed.

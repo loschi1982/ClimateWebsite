@@ -1,335 +1,233 @@
 {
-  "schema_version": "1.0",
-  "project": "ClimateInsight",
-  "last_updated": "2026-03-07T00:00:00Z",
+  "project": {
+    "name": "Klimaplattform",
+    "version": "0.1.0",
+    "started": "2025-01-01",
+    "description": "Open-Source-Webplattform zur wissenschaftlichen Klimaaufklärung"
+  },
 
   "architecture_decisions": [
     {
-      "id": "adr_001",
-      "timestamp": "2026-03-05T10:00:00Z",
-      "team": "system_architect",
-      "topic": "Datenbankwahl für Zeitreihen",
-      "decision": "TimescaleDB als primäre Zeitreihendatenbank",
-      "reasoning": "Klimadaten sind primär Zeitreihendaten. TimescaleDB bietet 10-100x bessere Performance als plain PostgreSQL und unterstützt gleichzeitig relationale Verknüpfungen.",
-      "alternatives_considered": ["InfluxDB", "QuestDB", "plain PostgreSQL"],
-      "impact": ["data_pipeline_team", "climate_analysis_team", "visualization_team"],
-      "status": "accepted"
+      "id": "arch_001",
+      "timestamp": "2025-01-01T10:00:00Z",
+      "team": "Architect",
+      "topic": "Technologie-Stack Backend",
+      "decision": "FastAPI (Python) als Backend-Framework",
+      "reasoning": "Einfach für Anfänger, automatische API-Dokumentation, Python-Ökosystem",
+      "impact": "Alle Backend-Teams verwenden FastAPI und Python 3.11+"
     },
     {
-      "id": "adr_002",
-      "timestamp": "2026-03-05T10:00:00Z",
-      "team": "system_architect",
-      "topic": "Frontend-Framework",
-      "decision": "Next.js 15 mit App Router und TypeScript",
-      "reasoning": "SSR für SEO, TypeScript für Typsicherheit im Multi-Team-Betrieb, App Router für moderne Datenladestrategien.",
-      "alternatives_considered": ["Vue.js + Nuxt", "SvelteKit", "React SPA"],
-      "impact": ["frontend_team", "ux_team"],
-      "status": "accepted"
+      "id": "arch_002",
+      "timestamp": "2025-01-01T10:00:00Z",
+      "team": "Architect",
+      "topic": "Technologie-Stack Frontend",
+      "decision": "React + Vite + Tailwind CSS",
+      "reasoning": "Weit verbreitet, gute Dokumentation, schnelle Entwicklung",
+      "impact": "Alle Frontend-Teams verwenden React mit funktionalen Komponenten und Hooks"
     },
     {
-      "id": "adr_003",
-      "timestamp": "2026-03-05T10:00:00Z",
-      "team": "system_architect",
-      "topic": "KI-Artikel-Workflow",
-      "decision": "Kein generierter Artikel wird ohne menschliche Prüfung veröffentlicht",
-      "reasoning": "Wissenschaftliche Plattform — automatische Veröffentlichung würde die Glaubwürdigkeit gefährden. Status 'pending_review' ist Pflicht.",
-      "alternatives_considered": ["Automatische Veröffentlichung mit Confidence-Score"],
-      "impact": ["ai_explanation_team", "frontend_team"],
-      "status": "accepted",
-      "non_negotiable": true
+      "id": "arch_003",
+      "timestamp": "2025-01-01T10:00:00Z",
+      "team": "Architect",
+      "topic": "Datenbank",
+      "decision": "SQLite für lokale Entwicklung",
+      "reasoning": "Keine Serverinstallation nötig, gut für Anfänger",
+      "impact": "Alle Module speichern strukturierte Daten in SQLite via SQLAlchemy"
     },
     {
-      "id": "adr_004",
-      "timestamp": "2026-03-05T10:00:00Z",
-      "team": "system_architect",
+      "id": "arch_004",
+      "timestamp": "2025-01-01T10:00:00Z",
+      "team": "Architect",
       "topic": "API-Versionierung",
-      "decision": "URL-Pfad-Versionierung (/api/v1/)",
-      "reasoning": "Einfach, explizit, keine Header-Magie. Teams können v1 stabil halten während v2 entwickelt wird.",
-      "alternatives_considered": [],
-      "impact": ["all_teams"],
-      "status": "accepted"
+      "decision": "Alle Endpunkte unter /api/v1/",
+      "reasoning": "Ermöglicht spätere Änderungen ohne Kompatibilitätsbruch",
+      "impact": "Teams dürfen keine Endpunkte außerhalb dieser Struktur erstellen"
     },
     {
-      "id": "adr_005",
-      "timestamp": "2026-03-05T10:00:00Z",
-      "team": "system_architect",
-      "topic": "Simulationsort (client vs. server)",
-      "decision": "OFFEN — noch nicht entschieden",
-      "reasoning": "Server-seitig ist zuverlässiger, client-seitig (WASM) ermöglicht Echtzeit-Interaktion. Simulation Team und Frontend Team müssen gemeinsam entscheiden.",
-      "alternatives_considered": ["Server-seitig Python", "Client-seitig WebAssembly"],
-      "impact": ["simulation_team", "frontend_team"],
-      "status": "open"
+      "id": "arch_005",
+      "timestamp": "2025-01-01T10:00:00Z",
+      "team": "Architect",
+      "topic": "Artikelveröffentlichung",
+      "decision": "KI-generierte Artikel werden NIEMALS automatisch veröffentlicht",
+      "reasoning": "Qualitätssicherung und wissenschaftliche Genauigkeit erfordern menschliche Prüfung",
+      "impact": "AI Explanation System speichert immer status: 'draft'. Veröffentlichung nur manuell."
     },
     {
-      "id": "adr_006",
-      "timestamp": "2026-03-07T00:00:00Z",
-      "team": "data_pipeline_team",
-      "topic": "In-Memory-Speicher in Phase 1",
-      "decision": "Routers nutzen Python-Dicts als temporären Speicher, kein DB-Zugriff in Phase 1",
-      "reasoning": "Ermöglicht sofortigen API-Start ohne laufende TimescaleDB. Alle Consumer-Teams können gegen echte Endpoints testen. Migration zu TimescaleDB in Phase 2.",
-      "alternatives_considered": ["SQLite für Phase 1", "Mock-Responses ohne echten Router"],
-      "impact": ["climate_analysis_team", "visualization_team", "frontend_team"],
-      "status": "accepted",
-      "superseded_by": "P2-DP: TimescaleDB-Integration"
+      "id": "arch_006",
+      "timestamp": "2025-01-01T10:00:00Z",
+      "team": "Architect",
+      "topic": "Visualisierung",
+      "decision": "Recharts für Diagramme, Leaflet für Karten",
+      "reasoning": "Beide gut mit React integrierbar, open source, gut dokumentiert",
+      "impact": "Visualization Team verwendet ausschließlich diese Bibliotheken"
     },
     {
-      "id": "adr_007",
-      "timestamp": "2026-03-07T00:00:00Z",
-      "team": "data_pipeline_team",
-      "topic": "Knowledge-Base-Suche Phase 1",
-      "decision": "Keyword-Suche als Platzhalter für semantische Suche (LlamaIndex)",
-      "reasoning": "LlamaIndex-Integration ist Phase-2-Aufgabe (P2-AI-01). Phase 1 braucht funktionierenden Endpoint ohne ML-Dependency.",
-      "alternatives_considered": ["LlamaIndex direkt in Phase 1"],
-      "impact": ["ai_explanation_team"],
-      "status": "accepted",
-      "superseded_by": "P2-AI-01: LlamaIndex RAG-Pipeline"
+      "id": "arch_007",
+      "timestamp": "2025-01-01T10:00:00Z",
+      "team": "Architect",
+      "topic": "KI-Modell",
+      "decision": "Anthropic claude-sonnet-4-20250514 für Artikelgenerierung",
+      "reasoning": "Gute Sprachqualität auf Deutsch, strukturierte Ausgaben möglich",
+      "impact": "AI Explanation Team nutzt ausschließlich dieses Modell"
     }
   ],
 
-  "api_definitions": [
-    {
-      "id": "api_ingestion_v1",
-      "module": "data_ingestion",
-      "version": "1.0",
-      "defined_by": "system_architect",
-      "spec_file": "memory/api_contracts.md",
-      "owner_team": "data_pipeline_team",
-      "consumers": ["climate_analysis_team", "visualization_team", "frontend_team"],
-      "status": "implemented_phase1"
-    },
-    {
-      "id": "api_analysis_v1",
-      "module": "climate_analysis",
-      "version": "1.0",
-      "defined_by": "system_architect",
-      "spec_file": "memory/api_contracts.md",
-      "owner_team": "climate_analysis_team",
-      "consumers": ["visualization_team", "simulation_team", "ai_explanation_team", "frontend_team"],
-      "status": "defined_not_implemented"
-    },
-    {
-      "id": "api_viz_v1",
-      "module": "visualization_engine",
-      "version": "1.0",
-      "defined_by": "system_architect",
-      "spec_file": "memory/api_contracts.md",
-      "owner_team": "visualization_team",
-      "consumers": ["frontend_team"],
-      "status": "defined_not_implemented"
-    },
-    {
-      "id": "api_simulation_v1",
-      "module": "simulation_engine",
-      "version": "1.0",
-      "defined_by": "system_architect",
-      "spec_file": "memory/api_contracts.md",
-      "owner_team": "simulation_team",
-      "consumers": ["frontend_team"],
-      "status": "defined_not_implemented"
-    },
-    {
-      "id": "api_knowledge_v1",
-      "module": "knowledge_base",
-      "version": "1.0",
-      "defined_by": "system_architect",
-      "spec_file": "memory/api_contracts.md",
-      "owner_team": "data_pipeline_team",
-      "consumers": ["ai_explanation_team", "frontend_team"],
-      "status": "implemented_phase1"
-    },
-    {
-      "id": "api_explain_v1",
-      "module": "ai_explanation",
-      "version": "1.0",
-      "defined_by": "system_architect",
-      "spec_file": "memory/api_contracts.md",
-      "owner_team": "ai_explanation_team",
-      "consumers": ["frontend_team"],
-      "status": "defined_not_implemented"
-    }
-  ],
+  "api_versions": {
+    "current": "v1",
+    "base_url_local": "http://localhost:8000/api/v1",
+    "breaking_changes": []
+  },
 
   "data_sources": [
     {
-      "id": "nasa_giss_surface_temp",
-      "name": "GISS Surface Temperature Analysis (GISTEMP v4)",
-      "provider": "NASA",
-      "url": "https://data.giss.nasa.gov/gistemp/",
-      "doi": "10.7289/V5MGNM48",
-      "variables": ["surface_temperature_anomaly"],
-      "temporal_coverage": "1880-present",
-      "temporal_resolution": "monthly",
-      "spatial_resolution": "global, 2°x2° grid",
-      "format": "CSV / NetCDF",
-      "license": "public_domain",
-      "status": "connector_implemented",
-      "priority": 1,
-      "connector_file": "modules/data_ingestion/src/connectors/nasa_giss.py"
-    },
-    {
-      "id": "noaa_co2_mauna_loa",
-      "name": "Mauna Loa CO2 Monthly Mean",
-      "provider": "NOAA GML",
-      "url": "https://gml.noaa.gov/ccgg/trends/",
-      "variables": ["co2_concentration"],
-      "temporal_coverage": "1958-present",
-      "temporal_resolution": "monthly",
+      "id": "src_001",
+      "name": "NASA GISS Surface Temperature Analysis (GISTEMP v4)",
+      "url": "https://data.giss.nasa.gov/gistemp/tabledata_v4/GLB.Ts+dSST.csv",
+      "variables": ["global_temperature_anomaly"],
+      "unit": "°C (Anomalie gegenüber 1951-1980)",
       "format": "CSV",
-      "license": "public_domain",
-      "status": "planned",
-      "priority": 2
+      "update_frequency": "monthly",
+      "license": "Public Domain",
+      "priority": 1,
+      "status": "planned"
     },
     {
-      "id": "nsidc_sea_ice_extent",
-      "name": "Sea Ice Index",
-      "provider": "NSIDC",
+      "id": "src_002",
+      "name": "NOAA Mauna Loa CO₂ Messungen",
+      "url": "https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_mm_mlo.csv",
+      "variables": ["co2_concentration"],
+      "unit": "ppm",
+      "format": "CSV",
+      "update_frequency": "monthly",
+      "license": "Public Domain",
+      "priority": 2,
+      "status": "planned"
+    },
+    {
+      "id": "src_003",
+      "name": "NSIDC Sea Ice Index",
       "url": "https://nsidc.org/data/seaice_index/",
-      "variables": ["sea_ice_extent"],
-      "temporal_coverage": "1979-present",
-      "temporal_resolution": "monthly",
-      "format": "CSV / GeoTIFF",
-      "license": "public_domain",
-      "status": "planned",
-      "priority": 3
-    },
-    {
-      "id": "nasa_sea_level",
-      "name": "NASA Sea Level Change",
-      "provider": "NASA / CNES",
-      "url": "https://sealevel.nasa.gov/",
-      "variables": ["sea_level_change"],
-      "temporal_coverage": "1993-present",
-      "temporal_resolution": "monthly",
-      "format": "CSV / NetCDF",
-      "license": "public_domain",
-      "status": "planned",
-      "priority": 4
-    }
-  ],
-
-  "analysis_methods": [
-    {
-      "id": "method_ols_trend",
-      "name": "Lineare Trendanalyse (OLS)",
-      "module": "climate_analysis",
-      "implementation": "scipy.stats.linregress",
-      "reference": "Montgomery et al. (2012) - Introduction to Linear Regression Analysis",
-      "validated": false,
+      "variables": ["arctic_sea_ice_extent", "antarctic_sea_ice_extent"],
+      "unit": "Millionen km²",
+      "format": "CSV",
+      "update_frequency": "monthly",
+      "license": "Public Domain",
+      "priority": 3,
       "status": "planned"
     }
   ],
 
-  "visualization_patterns": [],
-
-  "team_progress": {
-    "data_pipeline_team": {
-      "status": "phase_1_complete",
-      "completed_tasks": [
-        "P1-DP-01",
-        "P1-DP-02",
-        "P1-DP-03",
-        "P1-DP-04",
-        "P1-DP-05"
-      ],
-      "in_progress": [],
-      "blockers": [],
-      "notes": "Alle Phase-1-Aufgaben abgeschlossen. Climate Analysis Team kann starten."
+  "modules": {
+    "data_ingestion": {
+      "status": "planned",
+      "owner": "Data Pipeline Team",
+      "path": "backend/modules/data_ingestion/",
+      "phase": 1
     },
-    "climate_analysis_team": {
-      "status": "not_started",
-      "completed_tasks": [],
-      "in_progress": [],
-      "blockers": ["Wartet auf erste Datensätze vom Data Pipeline Team"]
+    "climate_analysis": {
+      "status": "planned",
+      "owner": "Climate Analysis Team",
+      "path": "backend/modules/climate_analysis/",
+      "phase": 1
     },
-    "visualization_team": {
-      "status": "not_started",
-      "completed_tasks": [],
-      "in_progress": [],
-      "blockers": ["Wartet auf Analyseergebnisse"]
+    "visualization": {
+      "status": "planned",
+      "owner": "Visualization Team",
+      "path": "frontend/src/components/charts/",
+      "phase": 1
     },
-    "simulation_team": {
-      "status": "not_started",
-      "completed_tasks": [],
-      "in_progress": [],
-      "blockers": ["ADR_005 (Simulationsort) noch offen"]
+    "simulation": {
+      "status": "planned",
+      "owner": "Simulation Team",
+      "path": "backend/modules/simulation/",
+      "phase": 2
     },
-    "frontend_team": {
-      "status": "not_started",
-      "completed_tasks": [],
-      "in_progress": [],
-      "blockers": []
+    "knowledge_base": {
+      "status": "planned",
+      "owner": "Backend Team",
+      "path": "backend/modules/knowledge_base/",
+      "phase": 1
     },
-    "ai_explanation_team": {
-      "status": "not_started",
-      "completed_tasks": [],
-      "in_progress": [],
-      "blockers": ["Wartet auf erste Wissensbasis-Einträge"]
-    },
-    "ux_team": {
-      "status": "not_started",
-      "completed_tasks": [],
-      "in_progress": [],
-      "blockers": []
-    },
-    "documentation_team": {
-      "status": "not_started",
-      "completed_tasks": [],
-      "in_progress": [],
-      "blockers": []
+    "ai_explanation": {
+      "status": "planned",
+      "owner": "AI Explanation Team",
+      "path": "backend/modules/ai_explanation/",
+      "phase": 2
     }
   },
 
-  "lessons_learned": [
-    {
-      "id": "ll_001",
-      "timestamp": "2026-03-07T00:00:00Z",
-      "team": "data_pipeline_team",
-      "topic": "NASA GISTEMP CSV-Format",
-      "insight": "NASA GISTEMP v4 CSV enthält neben Monatswerten auch Jahresspalten (J-D, D-N, DJF usw.). Parser liest nur Jan–Dec, Jahreswerte werden ignoriert.",
-      "relevant_file": "modules/data_ingestion/src/connectors/nasa_giss.py"
+  "development_phases": {
+    "phase_1": {
+      "name": "Datenpipeline und erste Visualisierung",
+      "weeks": "1-6",
+      "modules": ["data_ingestion", "climate_analysis", "visualization"],
+      "goal": "NASA-Temperatur und CO₂-Daten abrufbar und als Diagramm darstellbar"
     },
-    {
-      "id": "ll_002",
-      "timestamp": "2026-03-07T00:00:00Z",
-      "team": "data_pipeline_team",
-      "topic": "Fehlende Werte NASA",
-      "insight": "Fehlende Werte sind als '***' codiert. Sie werden als NaN mit quality_flag=missing gespeichert, nicht verworfen — so bleibt der Zeitindex vollständig.",
-      "relevant_file": "modules/data_ingestion/src/connectors/nasa_giss.py"
+    "phase_2": {
+      "name": "Simulation und KI-Erklärungen",
+      "weeks": "7-12",
+      "modules": ["simulation", "ai_explanation"],
+      "goal": "Interaktive Szenarien und erste KI-Artikelentwürfe"
     },
-    {
-      "id": "ll_003",
-      "timestamp": "2026-03-07T00:00:00Z",
-      "team": "data_pipeline_team",
-      "topic": "Plausibilitätsgrenzen Temperaturanomalie",
-      "insight": "Anomalien außerhalb [-5, +5] °C werden als QUESTIONABLE markiert. Grenze basiert auf historischen Extrema aus GISTEMP v4.",
-      "relevant_file": "modules/data_ingestion/src/connectors/nasa_giss.py"
+    "phase_3": {
+      "name": "Interaktive Exploration und UX",
+      "weeks": "13-18",
+      "modules": ["frontend_exploration", "ux_refinement"],
+      "goal": "Vollständige Explorationsseite für Endnutzer"
     }
-  ],
+  },
+
+  "lessons_learned": [],
+
+  "shared_files": {
+    "description": "Diese Dateien liegen im main-Branch und werden von allen Teams genutzt",
+    "files": [
+      {
+        "path": "README.md",
+        "owner": "Documentation Team",
+        "purpose": "Projektübersicht und Schnellstart"
+      },
+      {
+        "path": "docs/architecture.md",
+        "owner": "Documentation Team",
+        "purpose": "Systemarchitektur, Module, Technologie-Stack"
+      },
+      {
+        "path": "docs/api_contracts.md",
+        "owner": "Documentation Team",
+        "purpose": "Alle API-Endpunkte mit Beispielen"
+      },
+      {
+        "path": "docs/setup_guide.md",
+        "owner": "Documentation Team",
+        "purpose": "Installationsanleitung für Anfänger (Zorin OS 17)"
+      },
+      {
+        "path": "docs/data_sources.md",
+        "owner": "Documentation Team",
+        "purpose": "Datenquellen, Lizenzen, Integration"
+      },
+      {
+        "path": "memory/project_memory.json",
+        "owner": "Alle Teams (Einträge), Documentation Team (Pflege)",
+        "purpose": "Architekturentscheidungen, Lessons Learned"
+      },
+      {
+        "path": "memory/team_tasks.md",
+        "owner": "Documentation Team",
+        "purpose": "Aufgaben und Status aller Teams"
+      }
+    ],
+    "change_process": "Änderungen nur per Pull Request aus Team-Branch. Kein direkter Commit in main."
+  },
 
   "open_questions": [
-    {
-      "id": "oq_001",
-      "question": "Sollen Simulationen server-seitig (Python) oder client-seitig (WebAssembly) laufen?",
-      "raised_by": "system_architect",
-      "raised_at": "2026-03-05T10:00:00Z",
-      "impact": ["simulation_team", "frontend_team"],
-      "status": "open"
-    },
-    {
-      "id": "oq_002",
-      "question": "Welche Sprachen soll die Plattform initial unterstützen? (DE + EN?)",
-      "raised_by": "system_architect",
-      "raised_at": "2026-03-05T10:00:00Z",
-      "impact": ["frontend_team", "ai_explanation_team", "ux_team"],
-      "status": "open"
-    },
-    {
-      "id": "oq_003",
-      "question": "Celery (synchron) vs. FastAPI Background Tasks (async) — welches Muster ist Projektstandard für Connector-Aufrufe?",
-      "raised_by": "data_pipeline_team",
-      "raised_at": "2026-03-07T00:00:00Z",
-      "impact": ["data_pipeline_team", "climate_analysis_team"],
-      "status": "open"
-    }
-  ]
+    "Welche Copernicus-Schnittstelle (CDS API) wird in Phase 2 integriert?",
+    "Wird später PostgreSQL statt SQLite für Produktion genutzt?",
+    "Welche Sprachen soll die Plattform unterstützen (zunächst nur Deutsch)?"
+  ],
+
+  "team_contacts": {
+    "note": "Jedes LLM-Team aktualisiert diesen Bereich bei Beginn einer neuen Konversation"
+  }
 }

@@ -1,0 +1,121 @@
+# ============================================================
+# Klimaplattform – .gitignore
+# ============================================================
+# Diese Datei legt fest, welche Dateien NICHT in Git gespeichert werden.
+# Betrifft z. B. API-Keys, lokale Einstellungen und automatisch erzeugte Dateien.
+# ============================================================
+
+# ------------------------------------------------------------
+# Geheime Konfiguration – NIEMALS in Git!
+# ------------------------------------------------------------
+.env
+.env.local
+.env.*.local
+
+# ------------------------------------------------------------
+# Python – Backend
+# ------------------------------------------------------------
+
+# Virtuelle Umgebung
+backend/venv/
+backend/.venv/
+venv/
+.venv/
+
+# Python-Cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Python-Pakete (lokal gebaut)
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+
+# Pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# mypy
+.mypy_cache/
+
+# ------------------------------------------------------------
+# Datenbank
+# ------------------------------------------------------------
+
+# SQLite-Datenbankdatei (wird lokal erzeugt)
+*.db
+*.sqlite
+*.sqlite3
+
+# ------------------------------------------------------------
+# Klimadaten – Lokaler Cache
+# ------------------------------------------------------------
+# Rohdaten und verarbeitete Daten werden lokal gespeichert,
+# aber nicht in Git, da sie zu groß sind und automatisch neu
+# abgerufen werden können.
+
+data/raw/
+data/processed/
+
+# ------------------------------------------------------------
+# Node.js – Frontend
+# ------------------------------------------------------------
+
+# Abhängigkeiten (werden per npm install neu installiert)
+frontend/node_modules/
+node_modules/
+
+# Vite Build-Output
+frontend/dist/
+frontend/.vite/
+
+# Lokale Vite-Umgebungsdatei
+frontend/.env
+frontend/.env.local
+
+# ------------------------------------------------------------
+# Visual Studio Code
+# ------------------------------------------------------------
+
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json
+
+# Empfohlene Erweiterungen darf in Git sein:
+# (nicht ignoriert: .vscode/extensions.json wenn gewünscht)
+
+# ------------------------------------------------------------
+# Betriebssystem
+# ------------------------------------------------------------
+
+# Linux / Zorin OS
+.DS_Store
+Thumbs.db
+*~
+.directory
+
+# Temporäre Dateien
+*.tmp
+*.temp
+*.log
+*.swp
+
+# ------------------------------------------------------------
+# KI-generierte Artikelentwürfe (lokal, nicht in Git)
+# ------------------------------------------------------------
+# Artikelentwürfe werden in der Datenbank gespeichert, nicht als Dateien.
+# Falls doch Markdown-Entwürfe lokal gespeichert werden:
+data/drafts/
