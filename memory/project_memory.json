@@ -69,7 +69,44 @@
       "decision": "Anthropic claude-sonnet-4-20250514 für Artikelgenerierung",
       "reasoning": "Gute Sprachqualität auf Deutsch, strukturierte Ausgaben möglich",
       "impact": "AI Explanation Team nutzt ausschließlich dieses Modell"
-    }
+    },
+    {
+    "id": "arch_008",
+    "timestamp": "2026-03-08T00:00:00Z",
+    "team": "Data Pipeline Team",
+    "topic": "Vollständiger Datenabruf vor Caching",
+    "decision": "Alle Clients rufen immer den vollständigen verfügbaren Datensatz ab (start='1800-01-01', end='2100-12-31'). Die Zeitraum-Filterung findet nach dem Caching statt.",
+    "reasoning": "So können gecachte Daten für beliebige Zeiträume genutzt werden, ohne erneuten Netzwerkaufruf. Bei NASA/NOAA-Dateigrößen (~100 KB) ist das vertretbar.",
+    "impact": "Cache-Dateien enthalten immer den vollständigen Datensatz. Climate Analysis Team und Visualization Team erhalten bereits gefilterte Daten über den API-Endpunkt."
+  },
+  {
+    "id": "arch_009",
+    "timestamp": "2026-03-08T00:00:00Z",
+    "team": "Data Pipeline Team",
+    "topic": "Basisklasse BaseClient für alle Datenquellen-Clients",
+    "decision": "Alle Clients erben von BaseClient (ABC). BaseClient stellt _get(), _now_iso() und _build_dataset() bereit. Jeder Client implementiert fetch().",
+    "reasoning": "Einheitliche Schnittstelle, gemeinsame HTTP-Logik (Timeout, User-Agent), leicht erweiterbar für neue Quellen (Copernicus Phase 2).",
+    "impact": "Neue Datenquellen (z.B. Copernicus) implementieren BaseClient. Kein Einfluss auf bestehende Teams."
+  },
+  {
+    "id": "arch_010",
+    "timestamp": "2026-03-08T00:00:00Z",
+    "team": "Data Pipeline Team",
+    "topic": "Cache-Strategie: keine automatische Invalidierung",
+    "decision": "Der lokale Cache (data/processed/) hat keine automatische TTL. Cache wird nur durch force_refresh=True oder manuelle Löschung invalidiert. Scheduler (DP-10) wird Cache in Phase 3 regelmäßig refreshen.",
+    "reasoning": "Für Phase 1 ausreichend. Vereinfacht die Implementierung. Monatliche Klimadaten ändern sich selten.",
+    "impact": "Data Pipeline Team implementiert DP-10 (Scheduler) in Phase 3. Bis dahin: manuelle oder force_refresh-gesteuerte Aktualisierung."
+  },
+  {
+    "id": "arch_011",
+    "timestamp": "2026-03-08T00:00:00Z",
+    "team": "Data Pipeline Team",
+    "topic": "Wertebereiche für Validierung",
+    "decision": "Definierte Wertebereiche: temperature [-5.0, 5.0] °C, co2 [250.0, 600.0] ppm, sea_ice [0.0, 20.0] Mio. km². Überschreitungen erzeugen Warnungen, keine Fehler.",
+    "reasoning": "Temperaturanomalien >5°C oder <-5°C sind historisch nicht aufgetreten. CO2 250–600 ppm deckt Eiszeit bis realistisches Szenario ab. Warnungen statt Fehler, damit valide Ausreißer nicht verworfen werden.",
+    "impact": "Climate Analysis Team: Datensätze können Warnungen im Log enthalten. Validierungslogik ist in DataValidator zentralisiert."
+  }
+
   ],
 
   "api_versions": {
