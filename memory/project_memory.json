@@ -105,6 +105,52 @@
     "decision": "Definierte Wertebereiche: temperature [-5.0, 5.0] °C, co2 [250.0, 600.0] ppm, sea_ice [0.0, 20.0] Mio. km². Überschreitungen erzeugen Warnungen, keine Fehler.",
     "reasoning": "Temperaturanomalien >5°C oder <-5°C sind historisch nicht aufgetreten. CO2 250–600 ppm deckt Eiszeit bis realistisches Szenario ab. Warnungen statt Fehler, damit valide Ausreißer nicht verworfen werden.",
     "impact": "Climate Analysis Team: Datensätze können Warnungen im Log enthalten. Validierungslogik ist in DataValidator zentralisiert."
+  },
+
+  {
+    "id": "arch_012",
+    "timestamp": "2026-03-08T00:00:00Z",
+    "team": "Climate Analysis Team",
+    "topic": "Zeitachse als Dezimaljahreszahl für linregress",
+    "decision": "Datumsindex wird in Dezimaljahreszahlen (year + month/12) umgerechnet, bevor scipy.stats.linregress aufgerufen wird.",
+    "reasoning": "linregress erwartet numerische X-Werte. Dezimaljahreszahlen liefern korrekte physikalische Einheit (Wert/Jahr), die dann auf /Jahrzehnt skaliert wird. Unix-Timestamps wären zu groß und numerisch instabil.",
+    "impact": "Trend-Einheit ist immer 'Einheit/Jahrzehnt'. Visualization Team und AI Explanation Team können das direkt verwenden."
+  },
+  {
+    "id": "arch_013",
+    "timestamp": "2026-03-08T00:00:00Z",
+    "team": "Climate Analysis Team",
+    "topic": "Inner Join bei Korrelationsberechnung",
+    "decision": "Bei compute_correlation werden beide Datensätze per pandas inner join auf gemeinsame Datumsstempel reduziert, bevor NaN-Zeilen entfernt werden.",
+    "reasoning": "Klimadatensätze verschiedener Quellen haben oft unterschiedliche Aktualisierungszeitpunkte. Ein inner join stellt sicher, dass nur Monate mit Daten in beiden Reihen verglichen werden, ohne künstliche Lücken einzuführen.",
+    "impact": "Korrelationsergebnisse enthalten n_points, damit das Visualization Team und AI Explanation Team die Datenbasis einschätzen können."
+  },
+  {
+    "id": "arch_014",
+    "timestamp": "2026-03-08T00:00:00Z",
+    "team": "Climate Analysis Team",
+    "topic": "Standard-Referenzzeitraum 1951–1980 für Anomalien",
+    "decision": "compute_anomalies verwendet 1951–1980 als Standard-Referenzzeitraum (NASA GISS Konvention). Abweichende Zeiträume können per Parameter übergeben werden.",
+    "reasoning": "Konsistenz mit NASA GISTEMP ermöglicht direkte Vergleichbarkeit. Flexibler Parameter erlaubt spätere Erweiterung (z. B. WMO-Standard 1991–2020).",
+    "impact": "API-Endpunkt /api/v1/analysis/anomalies hat ref_start/ref_end als optionale Query-Parameter (bereits im API-Vertrag definiert)."
+  },
+  {
+    "id": "arch_015",
+    "timestamp": "2026-03-08T00:00:00Z",
+    "team": "Climate Analysis Team",
+    "topic": "Zentrierter gleitender Mittelwert (center=True)",
+    "decision": "compute_moving_average verwendet pandas rolling(center=True), nicht trailing.",
+    "reasoning": "Zentrierter Mittelwert vermeidet zeitlichen Versatz in Visualisierungen. Für Echtzeit-Anwendungen wäre trailing besser, aber für historische Klimazeitreihen ist Zentrierung korrekt.",
+    "impact": "Visualization Team: Geglättete Kurve liegt zeitlich korrekt über den Rohdaten. Keine Verschiebung um window/2 Monate."
+  },
+  {
+    "id": "arch_016",
+    "timestamp": "2026-03-08T00:00:00Z",
+    "team": "Climate Analysis Team",
+    "topic": "AnalysisSummary schema_version 0.1 (Phase-2-Platzhalter)",
+    "decision": "build_analysis_summary gibt schema_version '0.1' zurück. Die finale Version wird in CA-09 gemeinsam mit dem AI Explanation Team auf '1.0' angehoben.",
+    "reasoning": "AI Explanation Team kann bereits mit dem Format arbeiten und Feedback geben, ohne dass wir ein unabgestimmtes 1.0-Format einfrieren.",
+    "impact": "AI Explanation Team: Bitte CA-09 in Phase 2 priorisieren, um das Format zu finalisieren. Änderungen am AnalysisSummary-Format erfordern Abstimmung."
   }
 
   ],
